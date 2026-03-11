@@ -1,0 +1,44 @@
+// src/assets/scss/custom-datagrid.scss
+.MuiDataGrid-root {
+  border-radius: 8px;
+}
+
+.MuiDataGrid-columnHeaders {
+  background-color: #f5f5f5;
+  font-weight: 600;
+}
+
+.even-row {
+  background-color: #ffffff;
+}
+
+.odd-row {
+  background-color: #f8f9fa;
+}
+
+.MuiDataGrid-cell button {
+    margin-top: 10px;
+  font-size: 0.75rem;
+  padding: 4px 6px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.MuiDataGrid-cell button.btn-info {
+    margin: 8px 0px;
+  background-color: #11cdef;
+  color: white;
+}
+
+.MuiDataGrid-cell button.btn-primary {
+    margin: 8px 0px;
+  background-color: #5e72e4;
+  color: white;
+}
+
+.MuiDataGrid-cell button.btn-danger {
+    margin: 8px 0px;
+  background-color: #f5365c;
+  color: white;
+}

@@ -21529,5 +21529,30 @@ button:focus,
 .table .badge i {
   margin-right: 10px;
 }
+.modal-close-btn {
+  appearance: none;
+  border: none;
+  background: #f3f4f6;
+  color: #374151;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-size: 18px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-close-btn:hover {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.modal-close-btn:active {
+  transform: scale(0.92);
+}
 
 /*# sourceMappingURL=argon-dashboard-react.css.map */
