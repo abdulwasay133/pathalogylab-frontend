@@ -18,6 +18,7 @@ import { Pending } from "@mui/icons-material";
 import PendingPatients from "views/pages/patients/PendingPatient";
 import CompletedPatients from "views/pages/patients/CompletedPatients";
 import DoctorCommissions from "views/pages/doctos/DoctorCommission";
+import PayCommission from "views/pages/invoices/PayCommission";
 
 var routes = [
   {
@@ -109,6 +110,14 @@ var routes = [
     name: "Doctor Commissions",
     icon: "fa-solid fa-user-check text-info",
     component: <DoctorCommissions />,
+    layout: "/admin",
+    roles: ["admin", "doctor", "patient", "lab"],
+  },
+    {
+    path: "/patients/pay-commissions",
+    name: "Pay Commissions",
+    icon: "fa-solid fa-user-check text-info",
+    component: <PayCommission />,
     layout: "/admin",
     roles: ["admin", "doctor", "patient", "lab"],
   },
