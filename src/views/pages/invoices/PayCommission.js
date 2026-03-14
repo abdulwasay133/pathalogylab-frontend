@@ -13,21 +13,27 @@ import {
   Select,
   TextField,
   Typography,
+  Button,
 } from "@mui/material";
 import api from "api/axios";
 import AppTable from "components/AppTable";
+import InvoiceDialog from "components/Invoicedialog";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { Card, CardBody, CardHeader, Col, Container, Row } from "reactstrap";
+import {
+  IconButton,
+  Tooltip,
+} from "@mui/material";
 
-/* ─────────────────────────────────────────────
-   Small reusable summary card
-───────────────────────────────────────────── */
+/* ─────────────────────────────────────────
+   Summary Card
+───────────────────────────────────────── */
 function SummaryCard({ label, value, color, icon }) {
   return (
     <Card
       className="shadow-sm border-0"
-      style={{ borderRadius: 12, overflow: "hidden" }}
+      style={{ borderRadius: 14, overflow: "hidden" }}
     >
       <CardBody className="p-3">
         <div className="d-flex align-items-center justify-content-between">
@@ -62,11 +68,11 @@ function SummaryCard({ label, value, color, icon }) {
   );
 }
 
-/* ─────────────────────────────────────────────
+/* ─────────────────────────────────────────
    Main Component
-───────────────────────────────────────────── */
+───────────────────────────────────────── */
 function PayCommission() {
-  /* table state */
+  /* ── table state ── */
   const [rows, setRows] = useState([]);
   const [totalRows, setTotalRows] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -75,17 +81,21 @@ function PayCommission() {
   const [search, setSearch] = useState("");
   const [selectedDoctor, setSelectedDoctor] = useState("");
 
-  /* shared doctors list */
+  /* ── shared data ── */
   const [doctors, setDoctors] = useState([]);
+  const [summary, setSummary] = useState({
+    total: 0,
+    paid: 0,
+    unpaid: 0,
+    invoices: 0,
+    netAmount: 0
+  });
 
-  /* summary */
-  const [summary, setSummary] = useState({ total: 0, paid: 0, unpaid: 0 });
-
-  /* view dialog */
+  /* ── view dialog ── */
   const [openInfo, setOpenInfo] = useState(false);
   const [commissionInfo, setCommissionInfo] = useState(null);
 
-  /* ── Calculate Commissions modal ── */
+  /* ── calculate commissions modal ── */
   const [openCalc, setOpenCalc] = useState(false);
   const [calcDoctor, setCalcDoctor] = useState("");
   const [calcFrom, setCalcFrom] = useState("");
@@ -93,53 +103,130 @@ function PayCommission() {
   const [calcResults, setCalcResults] = useState([]);
   const [calcLoading, setCalcLoading] = useState(false);
   const [calcSaving, setCalcSaving] = useState(false);
+const [openInvoice, setOpenInvoice] = useState(false);
+const [selectedInvoiceId, setSelectedInvoiceId] = useState(null);
 
-  /* ─────────────── columns ─────────────── */
-  const columns = [
-    { field: "id", headerName: "ID", width: 70 },
-    { field: "doctor_name", headerName: "Doctor", width: 200 },
-    { field: "net_total", headerName: "Net Total", width: 150 },
-    {
-      field: "status",
-      headerName: "Status",
-      width: 130,
-      renderCell: (params) => (
-        <Chip
-          label={params.value}
-          size="small"
-          color={params.value === "paid" ? "success" : "warning"}
-          variant="outlined"
-          sx={{ textTransform: "capitalize", fontWeight: 600 }}
-        />
-      ),
-    },
-    { field: "date", headerName: "Date", width: 120 },
-    { field: "commission_percentage", headerName: "%", width: 80 },
-    { field: "commission_amount", headerName: "Commission", width: 150 },
-  ];
+  /* ─────────────────────────────────────────
+     Table Columns  (all bugs fixed)
+  ───────────────────────────────────────── */
+const columns = [
+  { field: "id", headerName: "ID", width: 70 },
 
-  /* ─────────────── handlers ─────────────── */
+  {
+    field: "doctor_name",
+    headerName: "Doctor",
+    width: 200,
+    valueGetter: (value, row) => row?.doctor?.name || "-",
+  },
+
+  {
+    field: "total_net_amount",
+    headerName: "Net Total",
+    width: 150,
+    valueGetter: (value, row) =>
+      Number(row?.total_net_amount || 0).toLocaleString(),
+  },
+
+
+
+  {
+    field: "updated_at",
+    headerName: "Date",
+    width: 150,
+    valueGetter: (value, row) =>
+      row?.updated_at
+        ? new Date(row.updated_at).toLocaleDateString("en-PK", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          })
+        : "-",
+  },
+
+  {
+    field: "commission_percentage",
+    headerName: "%",
+    width: 80,
+    valueGetter: (value, row) => row?.doctor?.commission_percentage || 0,
+  },
+
+  {
+    field: "total_commission",
+    headerName: "Commission",
+    width: 150,
+    valueGetter: (value, row) =>
+      Number(row?.total_commission || 0).toLocaleString(),
+  },
+  {
+  field: "invoice_status",
+  headerName: "Invoice Status",
+  width: 180,
+  renderCell: (params) => {
+    const isPaid = params.row?.status === "paid";
+    return (
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <Tooltip title={`Mark as ${isPaid ? "Unpaid" : "Paid"}`}>
+          <div
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleInvoiceStatus(params.row);
+            }}
+            
+          >
+            <button className={`btn btn-sm ${isPaid ? "btn-success" : "btn-danger"}`}>
+  {isPaid ? "Paid" : "Unpaid"}
+</button>
+            {/* <i
+              className={`fa-solid ${isPaid ? "fa-rotate-left" : "fa-check"}`}
+              style={{ fontSize: 12 }}
+            /> */}
+          </div>
+        </Tooltip>
+      </div>
+    );
+  },
+},
+];
+
+  /* ─────────────────────────────────────────
+     Handlers
+  ───────────────────────────────────────── */
   const handleView = (row) => {
-    setCommissionInfo(row);
-    setOpenInfo(true);
+    setSelectedInvoiceId(row.id);
+    setOpenInvoice(true);
   };
+
+  const toggleInvoiceStatus = async (row) => {
+  try {
+    const res = await api.post(`/invoices/${row.id}/toggle-status`);
+    const newStatus = res.data.data?.status;
+    toast.success(`Invoice marked as ${newStatus}`);
+    fetchData();
+    fetchSummary();
+  } catch {
+    toast.error("Failed to update invoice status");
+  }
+};
 
   const markPaid = async (row) => {
     try {
       await api.post(`/doctor-commissions/pay/${row.id}`);
       toast.success("Commission marked as Paid");
-      FetchData();
+      fetchData();
       fetchSummary();
     } catch {
       toast.error("Failed to update commission");
     }
   };
 
-  /* ─────────────── API calls ─────────────── */
+  /* ─────────────────────────────────────────
+     API Calls
+  ───────────────────────────────────────── */
   const fetchDoctors = async () => {
     try {
       const res = await api.get("/doctors");
-      setDoctors(res.data.data || res.data);
+      setDoctors(res.data.data || res.data || []);
     } catch (e) {
       console.error(e);
     }
@@ -150,43 +237,44 @@ function PayCommission() {
       const res = await api.get("/doctor-commissions/summary", {
         params: { doctor_id: selectedDoctor },
       });
-      setSummary(res.data);
+setSummary({
+    total: res.data.total_commission,
+    paid: res.data.paid_commission,
+    unpaid: res.data.unpaid_commission,
+    invoices: res.data.total_invoices,
+    netAmount: res.data.total_net_amount
+  });
     } catch (e) {
       console.error(e);
     }
   };
 
-  const FetchData = async () => {
+  const fetchData = async () => {
     setLoading(true);
     try {
       const res = await api.get("/doctor-commissions", {
         params: { page, pageSize, search, doctor_id: selectedDoctor },
       });
-      setRows(res.data.data);
-      setTotalRows(res.data.total);
+      setRows(res.data.data || []);
+      setTotalRows(res.data.total || 0);
     } catch (e) {
       console.error(e);
+      toast.error("Failed to fetch data");
     }
     setLoading(false);
   };
 
-  /* ─────────────── Calculate modal actions ─────────────── */
+  /* ─────────────────────────────────────────
+     Calculate Modal Actions
+  ───────────────────────────────────────── */
   const handleCalculate = async () => {
-    if (!calcDoctor) {
-      toast.warning("Please select a doctor first");
-      return;
-    }
+    if (!calcDoctor) return toast.warning("Please select a doctor first");
     setCalcLoading(true);
     try {
       const res = await api.get("/doctor-commissions/calculate", {
-        params: {
-          doctor_id: calcDoctor,
-          from: calcFrom,
-          to: calcTo,
-        },
+        params: { doctor_id: calcDoctor, from: calcFrom, to: calcTo },
       });
-      setCalcResults(res.data.data || res.data);
-      console.log(res.data.data);
+      setCalcResults(res.data.data || res.data || []);
     } catch (e) {
       console.error(e);
       toast.error("Failed to calculate commissions");
@@ -195,26 +283,18 @@ function PayCommission() {
   };
 
   const handleSaveCommissions = async () => {
-    if (!calcResults.length) {
-      toast.warning("No records to save");
-      return;
-    }
+    if (!calcResults.length) return toast.warning("No records to save");
     setCalcSaving(true);
     try {
-      const res = await api.post("/doctor-commissions/bulk-store", {
+      await api.post("/doctor-commissions/bulk-store", {
         doctor_id: calcDoctor,
         from: calcFrom,
         to: calcTo,
         records: calcResults,
       });
-      console.log(res);
       toast.success("Commissions saved successfully!");
-      setOpenCalc(false);
-      setCalcResults([]);
-      setCalcDoctor("");
-      setCalcFrom("");
-      setCalcTo("");
-      FetchData();
+      handleCloseCalc();
+      fetchData();
       fetchSummary();
     } catch (e) {
       console.error(e);
@@ -231,9 +311,11 @@ function PayCommission() {
     setCalcTo("");
   };
 
-  /* ─────────────── effects ─────────────── */
+  /* ─────────────────────────────────────────
+     Effects
+  ───────────────────────────────────────── */
   useEffect(() => {
-    FetchData();
+    fetchData();
     fetchSummary();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, pageSize, search, selectedDoctor]);
@@ -242,7 +324,9 @@ function PayCommission() {
     fetchDoctors();
   }, []);
 
-  /* ─────────────── helpers ─────────────── */
+  /* ─────────────────────────────────────────
+     Helpers
+  ───────────────────────────────────────── */
   const calcTotal = calcResults.reduce(
     (sum, r) => sum + parseFloat(r.commission_amount || 0),
     0
@@ -250,15 +334,17 @@ function PayCommission() {
   const selectedDoctorName =
     doctors.find((d) => d.id === calcDoctor)?.name || "";
 
-  /* ─────────────── render ─────────────── */
+  /* ─────────────────────────────────────────
+     Render
+  ───────────────────────────────────────── */
   return (
     <>
       <div className="header bg-gradient-info pb-8 pt-5 pt-md-8" />
 
       <Container className="mt--9" fluid>
-        {/* ── SUMMARY CARDS ── */}
-        <Row className="mb-4">
-          <Col xs="12" sm="4" className="mb-3 mb-sm-0">
+        {/* ── Summary Cards ── */}
+        <Row className="mb-3">
+          <Col xs="12" sm="3" className="mb-3 mb-sm-0">
             <SummaryCard
               label="Total Commission"
               value={`PKR ${Number(summary.total || 0).toLocaleString()}`}
@@ -266,15 +352,15 @@ function PayCommission() {
               icon="💰"
             />
           </Col>
-          <Col xs="12" sm="4" className="mb-3 mb-sm-0">
+          <Col xs="12" sm="3" className="mb-3 mb-sm-0">
             <SummaryCard
               label="Paid"
-              value={`PKR ${Number(summary.paid || 0).toLocaleString()}`}
+              value={`PKR ${summary.paid || 0}`}
               color="#2dce89"
               icon="✅"
             />
           </Col>
-          <Col xs="12" sm="4">
+          <Col xs="12" sm="3">
             <SummaryCard
               label="Unpaid"
               value={`PKR ${Number(summary.unpaid || 0).toLocaleString()}`}
@@ -282,21 +368,33 @@ function PayCommission() {
               icon="⏳"
             />
           </Col>
+          <Col xs="12" sm="3">
+            <SummaryCard
+              label="Invoices"
+              value={`No. ${Number(summary.invoices || 0).toLocaleString()}`}
+              color="#920abb"
+              icon="⏳"
+            />
+          </Col>
         </Row>
 
+        {/* ── Commission Table ── */}
         <Row>
           <div className="col">
             <Card className="shadow border-0" style={{ borderRadius: 14 }}>
               <CardHeader
                 className="bg-transparent d-flex align-items-center justify-content-between flex-wrap gap-2"
-                style={{ borderBottom: "1px solid #f0f0f0", padding: "1rem 1.5rem" }}
+                style={{
+                  borderBottom: "1px solid #f0f0f0",
+                  padding: "1rem 1.5rem",
+                }}
               >
                 <h3 className="mb-0" style={{ fontWeight: 700 }}>
                   Pay Commissions
                 </h3>
 
                 <div className="d-flex align-items-center gap-3 flex-wrap">
-                  {/* ── Doctor filter ── */}
+                  {/* Doctor filter */}
                   <FormControl size="small" style={{ minWidth: 200 }}>
                     <InputLabel>Filter by Doctor</InputLabel>
                     <Select
@@ -319,7 +417,7 @@ function PayCommission() {
                     </Select>
                   </FormControl>
 
-                  {/* ── Calculate button ── */}
+                  {/* Calculate button */}
                   <button
                     className="btn btn-primary btn-sm d-flex align-items-center gap-1"
                     style={{
@@ -332,7 +430,7 @@ function PayCommission() {
                     }}
                     onClick={() => setOpenCalc(true)}
                   >
-                    <span style={{ fontSize: 16 }} className="mx-2"><i class="fa-solid fa-calculator"></i></span>
+                    <i className="fa-solid fa-calculator mx-2" />
                     Calculate Commissions
                   </button>
                 </div>
@@ -357,76 +455,89 @@ function PayCommission() {
         </Row>
       </Container>
 
-      {/* ══════════════════════════════════════
-          VIEW DETAILS DIALOG
-      ══════════════════════════════════════ */}
+      {/* ════════════════════════════════════════
+          View Commission Dialog
+      ════════════════════════════════════════ */}
       <Dialog
         open={openInfo}
         onClose={() => setOpenInfo(false)}
-        PaperProps={{
-          sx: { borderRadius: "14px", padding: "8px", minWidth: "420px" },
-        }}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ style: { borderRadius: 14 } }}
       >
-        <DialogTitle>
-          <Typography fontWeight={700} fontSize="18px">
-            Commission Details
-          </Typography>
+        <DialogTitle sx={{ fontWeight: 700, pb: 1 }}>
+          Commission Details
         </DialogTitle>
-
+        <Divider />
         <DialogContent>
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: "repeat(2,1fr)",
-              gap: 2,
-              mt: 1,
-            }}
-          >
-            {[
-              ["Doctor", commissionInfo?.doctor_name],
-              ["Patient", commissionInfo?.patient_name],
-              ["Receipt ID", commissionInfo?.receipt_id],
-              ["Receipt Amount", commissionInfo?.receipt_amount],
-              ["Commission %", commissionInfo?.commission_percentage],
-              ["Commission Amount", commissionInfo?.commission_amount],
-              ["Status", commissionInfo?.status],
-              ["Date", commissionInfo?.created_at],
-            ].map(([label, val]) => (
-              <Box
-                key={label}
-                sx={{
-                  p: 1.5,
-                  borderRadius: 2,
-                  background: "#f8f9fe",
-                  border: "1px solid #e9ecf3",
-                }}
-              >
-                <Typography fontSize={11} color="text.secondary" fontWeight={600} mb={0.3}>
-                  {label}
-                </Typography>
-                <Typography fontSize={14} fontWeight={500}>
-                  {val || "—"}
-                </Typography>
-              </Box>
-            ))}
-          </Box>
+          {commissionInfo ? (
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+              <InfoRow label="ID" value={commissionInfo.id} />
+              <InfoRow
+                label="Doctor"
+                value={commissionInfo.doctor?.name || "-"}
+              />
+              <InfoRow
+                label="Commission %"
+                value={`${commissionInfo.doctor?.commission_percentage || 0}%`}
+              />
+              <InfoRow
+                label="Net Total"
+                value={`PKR ${Number(
+                  commissionInfo.total_net_amount || 0
+                ).toLocaleString()}`}
+              />
+              <InfoRow
+                label="Commission"
+                value={`PKR ${Number(
+                  commissionInfo.total_commission || 0
+                ).toLocaleString()}`}
+              />
+              <InfoRow
+                label="Status"
+                value={
+                  <Chip
+                    label={commissionInfo.status || "unpaid"}
+                    size="small"
+                    color={
+                      commissionInfo.status === "paid" ? "success" : "warning"
+                    }
+                    variant="outlined"
+                    sx={{ textTransform: "capitalize", fontWeight: 600 }}
+                  />
+                }
+              />
+              <InfoRow
+                label="Date"
+                value={
+                  commissionInfo.updated_at
+                    ? new Date(commissionInfo.updated_at).toLocaleDateString(
+                        "en-PK",
+                        { day: "2-digit", month: "short", year: "numeric" }
+                      )
+                    : "-"
+                }
+              />
+            </Box>
+          ) : (
+            <Typography>No data</Typography>
+          )}
         </DialogContent>
-
-        <DialogActions sx={{ pr: 2, pb: 2 }}>
-          <button
-            className="btn btn-primary btn-sm"
-            style={{ borderRadius: 8, minWidth: 80 }}
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
             onClick={() => setOpenInfo(false)}
+            variant="outlined"
+            sx={{ borderRadius: 2 }}
           >
             Close
-          </button>
+          </Button>
         </DialogActions>
       </Dialog>
 
-      {/* ══════════════════════════════════════
-          CALCULATE COMMISSIONS DIALOG
-      ══════════════════════════════════════ */}
-      <Dialog
+      {/* ════════════════════════════════════════
+          Calculate Commissions Dialog
+      ════════════════════════════════════════ */}
+  <Dialog
         open={openCalc}
         onClose={handleCloseCalc}
         fullWidth
@@ -448,7 +559,7 @@ function PayCommission() {
         >
           <Box>
             <Typography color="white" fontWeight={700} fontSize="18px">
-              <i class="fa-solid fa-calculator"></i> Calculate Commissions
+              🧮 Calculate Commissions
             </Typography>
             <Typography color="rgba(255,255,255,.7)" fontSize="13px" mt={0.3}>
               Select a doctor and date range to preview commissions
@@ -473,7 +584,7 @@ function PayCommission() {
             ×
           </button>
         </Box>
-
+ 
         <DialogContent sx={{ p: 3 }}>
           {/* Filters row */}
           <Box
@@ -506,7 +617,7 @@ function PayCommission() {
                 ))}
               </Select>
             </FormControl>
-
+ 
             <TextField
               label="From Date"
               type="date"
@@ -520,7 +631,7 @@ function PayCommission() {
               }}
               sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px" } }}
             />
-
+ 
             <TextField
               label="To Date"
               type="date"
@@ -534,7 +645,7 @@ function PayCommission() {
               }}
               sx={{ "& .MuiOutlinedInput-root": { borderRadius: "8px" } }}
             />
-
+ 
             <button
               className="btn btn-info btn-sm"
               style={{
@@ -554,7 +665,7 @@ function PayCommission() {
               )}
             </button>
           </Box>
-
+ 
           {/* Results table */}
           {calcResults.length > 0 ? (
             <>
@@ -607,7 +718,7 @@ function PayCommission() {
                   </>
                 )}
               </Box>
-
+ 
               {/* Scrollable table */}
               <Box
                 sx={{
@@ -627,7 +738,7 @@ function PayCommission() {
                         zIndex: 1,
                       }}
                     >
-                      {["#", "Patient", "Tests", "Net Total", "Commission %", "Commission", "Date"].map(
+                      {["#", "Patient", "Receipt ID", "Net Total", "Commission %", "Commission", "Date"].map(
                         (h) => (
                           <th
                             key={h}
@@ -659,7 +770,7 @@ function PayCommission() {
                       >
                         <td style={tdStyle}>{idx + 1}</td>
                         <td style={tdStyle}>{r.patient_name || "—"}</td>
-                        <td style={tdStyle}>{r.tests || "—"}</td>
+                        <td style={tdStyle}>{r.receipt_id || "—"}</td>
                         <td style={tdStyle}>
                           {Number(r.net_total || 0).toLocaleString()}
                         </td>
@@ -687,7 +798,7 @@ function PayCommission() {
                 }}
               >
                 <Typography fontSize={36} mb={1}>
-                  <i class="fa-solid fa-calculator"></i>
+                  📊
                 </Typography>
                 <Typography fontWeight={600} color="text.secondary">
                   Select a doctor and apply filter to see commissions
@@ -695,7 +806,7 @@ function PayCommission() {
               </Box>
             )
           )}
-
+ 
           {calcLoading && (
             <Box sx={{ textAlign: "center", py: 5 }}>
               <CircularProgress size={36} />
@@ -705,7 +816,7 @@ function PayCommission() {
             </Box>
           )}
         </DialogContent>
-
+ 
         <DialogActions
           sx={{
             px: 3,
@@ -723,7 +834,7 @@ function PayCommission() {
           >
             Cancel
           </button>
-
+ 
           <button
             className="btn btn-success btn-sm d-flex align-items-center gap-1"
             style={{
@@ -747,11 +858,54 @@ function PayCommission() {
           </button>
         </DialogActions>
       </Dialog>
+            <InvoiceDialog
+  open={openInvoice}
+  invoiceId={selectedInvoiceId}
+  onClose={() => setOpenInvoice(false)}
+/>
     </>
   );
 }
 
-/* tiny helper */
+/* ─────────────────────────────────────────
+   Small helpers
+───────────────────────────────────────── */
+function InfoRow({ label, value }) {
+  return (
+    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+      <Typography
+        sx={{
+          minWidth: 140,
+          fontSize: 13,
+          color: "#8898aa",
+          fontWeight: 600,
+          textTransform: "uppercase",
+          letterSpacing: 0.5,
+        }}
+      >
+        {label}
+      </Typography>
+      <Typography sx={{ fontSize: 14, color: "#32325d", fontWeight: 500 }}>
+        {value}
+      </Typography>
+
+
+
+    </Box>
+  );
+}
+
+const thStyle = {
+  padding: "10px 12px",
+  fontSize: 12,
+  fontWeight: 700,
+  color: "#8898aa",
+  textTransform: "uppercase",
+  letterSpacing: 0.5,
+  textAlign: "left",
+  borderBottom: "2px solid #e9ecef",
+};
+
 const tdStyle = {
   padding: "9px 12px",
   fontSize: 13,
