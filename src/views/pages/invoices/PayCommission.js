@@ -60,7 +60,7 @@ function SummaryCard({ label, value, color, icon }) {
               fontSize: 20,
             }}
           >
-            {icon}
+            <i className={icon}></i>
           </div>
         </div>
       </CardBody>
@@ -349,7 +349,7 @@ setSummary({
               label="Total Commission"
               value={`PKR ${Number(summary.total || 0).toLocaleString()}`}
               color="#5e72e4"
-              icon="💰"
+              icon="fa-solid fa-money-bill-trend-up text-primary"
             />
           </Col>
           <Col xs="12" sm="3" className="mb-3 mb-sm-0">
@@ -357,7 +357,7 @@ setSummary({
               label="Paid"
               value={`PKR ${summary.paid || 0}`}
               color="#2dce89"
-              icon="✅"
+              icon="fa-solid fa-hand-holding-dollar text-success"
             />
           </Col>
           <Col xs="12" sm="3">
@@ -365,7 +365,7 @@ setSummary({
               label="Unpaid"
               value={`PKR ${Number(summary.unpaid || 0).toLocaleString()}`}
               color="#fb6340"
-              icon="⏳"
+              icon="fa-solid fa-dollar-sign text-danger"
             />
           </Col>
           <Col xs="12" sm="3">
@@ -373,7 +373,7 @@ setSummary({
               label="Invoices"
               value={`No. ${Number(summary.invoices || 0).toLocaleString()}`}
               color="#920abb"
-              icon="⏳"
+              icon="fa-solid fa-file-invoice text-purple"
             />
           </Col>
         </Row>
@@ -798,7 +798,7 @@ setSummary({
                 }}
               >
                 <Typography fontSize={36} mb={1}>
-                  📊
+                  <i className="fa-solid fa-calculator"></i>
                 </Typography>
                 <Typography fontWeight={600} color="text.secondary">
                   Select a doctor and apply filter to see commissions

@@ -102,7 +102,7 @@ function SectionHeading({ icon, title }) {
         background: "linear-gradient(135deg,#5e72e4,#825ee4)",
         display: "flex", alignItems: "center", justifyContent: "center",
         fontSize: 15, flexShrink: 0,
-      }}>{icon}</span>
+      }}><i className={icon}></i></span>
       <h6 className="heading-small text-muted mb-0" style={{ letterSpacing: 1 }}>{title}</h6>
     </div>
   );
@@ -259,7 +259,7 @@ export default function Profile() {
                       background: "linear-gradient(135deg,#11cdef,#1171ef)",
                       display: "flex", alignItems: "center", justifyContent: "center",
                       fontSize: 18,
-                    }}>🏥</span>
+                    }}><i class="fa-solid fa-hospital text-white"></i></span>
                     <div>
                       <h3 className="mb-0">Laboratory Settings</h3>
                       <p className="text-muted mb-0" style={{ fontSize: 12 }}>
@@ -273,7 +273,7 @@ export default function Profile() {
               <CardBody style={{ padding: "1.5rem" }}>
                 <Form>
                   {/* ─ Basic Info ─ */}
-                  <SectionHeading icon="🔬" title="LABORATORY INFORMATION" />
+                  <SectionHeading icon="fa-solid fa-vial text-white" title="LABORATORY INFORMATION" />
                   <div className="pl-lg-3 mb-4">
                     <Row>
                       <Col lg="6">
@@ -328,7 +328,7 @@ export default function Profile() {
                   <hr className="my-3" />
 
                   {/* ─ Contact ─ */}
-                  <SectionHeading icon="📞" title="CONTACT INFORMATION" />
+                  <SectionHeading icon="fa-solid fa-phone text-white" title="CONTACT INFORMATION" />
                   <div className="pl-lg-3 mb-4">
                     <Row>
                       <Col lg="6">
@@ -407,7 +407,7 @@ export default function Profile() {
                       onClick={saveLab}
                       disabled={savingLab}
                     >
-                      {savingLab ? "Saving…" : "💾 Save Lab Info"}
+                      {savingLab ? "Saving…" : "Save"}
                     </button>
                   </div>
                 </Form>
@@ -428,7 +428,7 @@ export default function Profile() {
                     background: "linear-gradient(135deg,#f5365c,#f56036)",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     fontSize: 18,
-                  }}>🔐</span>
+                  }}><i className="fa-solid fa-key text-white"></i></span>
                   <div>
                     <h3 className="mb-0">Reset Password</h3>
                     <p className="text-muted mb-0" style={{ fontSize: 12 }}>
@@ -527,7 +527,7 @@ export default function Profile() {
                       background: "linear-gradient(135deg,#2dce89,#2dcecc)",
                       display: "flex", alignItems: "center", justifyContent: "center",
                       fontSize: 18,
-                    }}>📄</span>
+                    }}><i className="fa-solid fa-file-lines text-white"></i></span>
                     <div>
                       <h3 className="mb-0">Report Header & Footer</h3>
                       <p className="text-muted mb-0" style={{ fontSize: 12 }}>
@@ -639,7 +639,7 @@ export default function Profile() {
                     onClick={saveImages}
                     disabled={savingImg}
                   >
-                    {savingImg ? "Saving…" : "🖼️ Save Images & Settings"}
+                    {savingImg ? "Saving…" : "Save Images & Settings"}
                   </button>
                 </div>
               </CardBody>

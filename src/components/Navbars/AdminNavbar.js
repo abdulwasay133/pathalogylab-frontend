@@ -1,6 +1,4 @@
-
 import { Link } from "react-router-dom";
-// reactstrap components
 import {
   DropdownMenu,
   DropdownItem,
@@ -22,31 +20,54 @@ import api from "api/axios";
 import { toast } from "react-toastify";
 
 const AdminNavbar = (props) => {
-  const navigate = useNavigate();
+  const navigate  = useNavigate();
 
+  // ── Pull logged-in user from localStorage ──────────────────────────
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const userName   = user?.name  || "Admin";
+  const userEmail  = user?.email || "";
+
+  // ── Get initials for avatar fallback ──────────────────────────────
+  const getInitials = (name) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  // ── Logout ─────────────────────────────────────────────────────────
   const handleLogout = async () => {
-    const token = localStorage.getItem("token");
-    const res = await api.post("/logout", { token });
-    if (res.status === 200) {
-      toast.success(res.data.message);
+    try {
+      const res = await api.post("/logout");
+      if (res.status === 200) {
+        toast.success(res.data.message || "Logged out successfully");
+      }
+    } catch (err) {
+      // even if API fails, clear local storage and redirect
+      toast.info("Logged out");
+    } finally {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      navigate("/login");
-    }else{
-      toast.error(res.data.message);
+      navigate("/auth/login");
     }
-    
-  }
+  };
+
   return (
     <>
       <Navbar className="navbar-top navbar-dark" expand="md" id="navbar-main">
         <Container fluid>
+
+          {/* ── Brand / Page Title ── */}
           <Link
             className="h4 mb-0 text-white text-uppercase d-none d-lg-inline-block"
-            to="/"
+            to="/admin/dashboard"
           >
             {props.brandText}
           </Link>
+
+          {/* ── Search Bar ── */}
           <Form className="navbar-search navbar-search-dark form-inline mr-3 d-none d-md-flex ml-lg-auto">
             <FormGroup className="mb-0">
               <InputGroup className="input-group-alternative">
@@ -55,55 +76,84 @@ const AdminNavbar = (props) => {
                     <i className="fas fa-search" />
                   </InputGroupText>
                 </InputGroupAddon>
-                <Input placeholder="Search" type="text" />
+                <Input placeholder="Search patients, tests, doctors..." type="text" />
               </InputGroup>
             </FormGroup>
           </Form>
+
+          {/* ── Right Side Nav ── */}
           <Nav className="align-items-center d-none d-md-flex" navbar>
+
+            {/* ── User Dropdown ── */}
             <UncontrolledDropdown nav>
               <DropdownToggle className="pr-0" nav>
                 <Media className="align-items-center">
-                  <span className="avatar avatar-sm rounded-circle">
-                    <img
-                      alt="..."
-                      src={require("../../assets/img/theme/team-4-800x800.jpg")}
-                    />
+
+                  {/* Avatar: initials circle (no broken image) */}
+                  <span
+                    className="avatar avatar-sm rounded-circle d-flex align-items-center justify-content-center font-weight-bold text-white"
+                    style={{
+                      background: "linear-gradient(87deg, #5e72e4 0, #825ee4 100%)",
+                      fontSize: "0.75rem",
+                      width: 36,
+                      height: 36,
+                    }}
+                  >
+                    {getInitials(userName)}
                   </span>
+
+                  {/* Name */}
                   <Media className="ml-2 d-none d-lg-block">
-                    <span className="mb-0 text-sm font-weight-bold">
-                      Jessica Jones
+                    <span className="mb-0 text-sm font-weight-bold text-white">
+                      {userName}
                     </span>
                   </Media>
                 </Media>
               </DropdownToggle>
+
               <DropdownMenu className="dropdown-menu-arrow" right>
+
+                {/* Header */}
                 <DropdownItem className="noti-title" header tag="div">
-                  <h6 className="text-overflow m-0">Welcome!</h6>
+                  <h6 className="text-overflow m-0">Welcome, {userName.split(" ")[0]}! 👋</h6>
+                  <p className="text-muted text-xs m-0">{userEmail}</p>
                 </DropdownItem>
-                <DropdownItem to="/admin/user-profile" tag={Link}>
-                  <i className="ni ni-single-02" />
-                  <span>My profile</span>
-                </DropdownItem>
-                <DropdownItem to="/admin/user-profile" tag={Link}>
-                  <i className="ni ni-settings-gear-65" />
-                  <span>Settings</span>
-                </DropdownItem>
-                <DropdownItem to="/admin/user-profile" tag={Link}>
-                  <i className="ni ni-calendar-grid-58" />
-                  <span>Activity</span>
-                </DropdownItem>
-                <DropdownItem to="/admin/user-profile" tag={Link}>
-                  <i className="ni ni-support-16" />
-                  <span>Support</span>
-                </DropdownItem>
+
                 <DropdownItem divider />
-                <DropdownItem  onClick={handleLogout}>
-                  <i className="ni ni-user-run" />
-                  <span>Logout</span>
+
+                {/* Nav Items */}
+                <DropdownItem to="/admin/dashboard" tag={Link}>
+                  <i className="ni ni-tv-2 text-primary" />
+                  <span>Dashboard</span>
                 </DropdownItem>
+
+                <DropdownItem to="/admin/patients" tag={Link}>
+                  <i className="fas fa-user-injured text-info" />
+                  <span>Patients</span>
+                </DropdownItem>
+
+                <DropdownItem to="/admin/doctors" tag={Link}>
+                  <i className="fas fa-user-md text-success" />
+                  <span>Doctors</span>
+                </DropdownItem>
+
+                <DropdownItem to="/admin/tests" tag={Link}>
+                  <i className="fas fa-vials text-warning" />
+                  <span>Tests</span>
+                </DropdownItem>
+
+                <DropdownItem divider />
+
+                {/* Logout */}
+                <DropdownItem onClick={handleLogout} style={{ cursor: "pointer" }}>
+                  <i className="ni ni-user-run text-danger" />
+                  <span className="text-danger">Logout</span>
+                </DropdownItem>
+
               </DropdownMenu>
             </UncontrolledDropdown>
           </Nav>
+
         </Container>
       </Navbar>
     </>

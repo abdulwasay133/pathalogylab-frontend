@@ -1,8 +1,9 @@
 {
   "name": "argon-dashboard-react",
-  "version": "1.2.4",
-  "description": "React version of Argon Dashboard by Creative Tim",
-  "main": "index.js",
+  "version": "0.1.0",
+  "private": true,
+  "main": "electron/main.js",
+  "homepage": "/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/creativetimofficial/argon-dashboard-react.git"
@@ -22,16 +23,14 @@
   "bugs": {
     "url": "https://github.com/creativetimofficial/argon-dashboard-react/issues"
   },
-  "homepage": "https://demos.creative-tim.com/argon-dashboard-react/",
   "scripts": {
     "start": "react-scripts start",
-    "build": "cross-env PUBLIC_URL=/ react-scripts build",
+    "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "install:clean": "rm -rf node_modules/ && rm -rf package-lock.json && npm install && npm start",
-    "compile:scss": "sass src/assets/scss/argon-dashboard-react.scss src/assets/css/argon-dashboard-react.css",
-    "minify:scss": "sass src/assets/scss/argon-dashboard-react.scss src/assets/css/argon-dashboard-react.min.css --style compressed",
-    "build:scss": "npm run compile:scss && npm run minify:scss && npm run map:scss"
+    "electron:dev": "concurrently \"cross-env BROWSER=none npm start\" \"wait-on http://localhost:3000 && cross-env NODE_ENV=development electron .\"",
+    "electron:build": "npm run build && electron-builder",
+    "electron:preview": "npm run build && electron ."
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -51,15 +50,15 @@
     "@mui/material": "^7.3.9",
     "@mui/x-data-grid": "^8.27.3",
     "ajv": "^8.16.0",
-    "bootstrap": "4.6.2",
-    "chart.js": "2.9.4",
-    "classnames": "2.3.2",
+    "bootstrap": "^4.6.2",
+    "chart.js": "^2.9.4",
+    "classnames": "^2.3.2",
     "dompurify": "^3.3.2",
     "moment": "2.29.4",
     "nouislider": "15.4.0",
     "react": "18.2.0",
     "react-barcode": "^1.6.1",
-    "react-chartjs-2": "2.11.2",
+    "react-chartjs-2": "^2.11.2",
     "react-copy-to-clipboard": "5.1.0",
     "react-datepicker": "^9.1.0",
     "react-datetime": "3.2.0",
@@ -69,13 +68,17 @@
     "react-scripts": "5.0.1",
     "react-to-print": "^3.3.0",
     "react-toastify": "^11.0.5",
-    "reactstrap": "8.10.0",
+    "reactstrap": "^8.10.0",
     "sass": "1.69.5"
   },
   "devDependencies": {
+    "concurrently": "^9.2.1",
     "cross-env": "^7.0.3",
+    "electron": "^41.0.3",
+    "electron-builder": "^26.8.1",
     "gulp": "4.0.2",
-    "gulp-append-prepend": "1.0.9"
+    "gulp-append-prepend": "1.0.9",
+    "wait-on": "^9.0.4"
   },
   "optionalDependencies": {
     "eslint-plugin-flowtype": "8.0.3",
@@ -85,5 +88,26 @@
     "svgo": "3.0.2",
     "fsevents": "2.3.2",
     "chokidar": "3.5.3"
+  },
+  "build": {
+    "appId": "com.yourname.yourapp",
+    "productName": "LIMS Dashboard",
+    "extraMetadata": {
+      "main": "electron/main.js"
+    },
+    "asar": false,
+    "files": [
+      "build/**/*",
+      "electron/**/*"
+    ],
+    "directories": {
+      "output": "dist-electron",
+      "buildResources": "assets"
+    },
+    "win": {
+      "target": "nsis",
+      "signAndEditExecutable": false,
+      "forceCodeSigning": false
+    }
   }
 }
