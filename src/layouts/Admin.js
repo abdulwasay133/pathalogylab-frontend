@@ -1,46 +1,44 @@
-import React from "react";
+import React, { useState } from "react";
 import { useLocation, Route, Routes, Navigate } from "react-router-dom";
-import { Container } from "reactstrap";
 
 import AdminNavbar from "components/Navbars/AdminNavbar.js";
 import AdminFooter from "components/Footers/AdminFooter.js";
-import Sidebar     from "components/Sidebar/Sidebar.js";
+import Sidebar from "components/Sidebar/Sidebar.js";
 
-import routes            from "routes.js";
-import { useAuth }       from "context/AuthContext";
+import routes from "routes.js";
+import { useAuth } from "context/AuthContext";
 import { flattenRoutes, filterByRoles } from "utils/routeFilter";
 
 const Admin = (props) => {
   const mainContent = React.useRef(null);
-  const location    = useLocation();
-  const { roles }   = useAuth();
+  const location = useLocation();
+  const { roles } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  /* ── scroll to top on route change ── */
   React.useEffect(() => {
     document.documentElement.scrollTop = 0;
     if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
     if (mainContent.current) mainContent.current.scrollTop = 0;
   }, [location]);
 
-  /* ── flatten grouped routes + filter by logged-in user roles ── */
   const allowedRoutes = filterByRoles(flattenRoutes(routes), roles);
 
-  /* ── build <Route> elements ── */
   const getRoutes = () =>
     allowedRoutes
-      .filter(r => r.layout === "/admin" && r.path && r.component)
+      .filter((r) => r.layout === "/admin" && r.path && r.component)
       .map((prop, key) => (
         <Route path={prop.path} element={prop.component} key={key} />
       ));
 
-  /* ── active page title for navbar ── */
   const getBrandText = () => {
     const flat = flattenRoutes(routes);
     for (const route of flat) {
       if (
         route.layout &&
         route.path &&
-        location.pathname.includes(route.layout + route.path.replace(/\/:[^/]+/g, ""))
+        location.pathname.includes(
+          route.layout + route.path.replace(/\/:[^/]+/g, "")
+        )
       ) {
         return route.name || "Dashboard";
       }
@@ -49,35 +47,35 @@ const Admin = (props) => {
   };
 
   return (
-    <>
+    <div className="min-h-screen bg-background">
       <Sidebar
         {...props}
         routes={routes}
+        mobileOpen={sidebarOpen}
+        onMobileClose={() => setSidebarOpen(false)}
         logo={{
           innerLink: "/admin/index",
-          imgSrc:    require("../assets/img/brand/argon-react.png"),
-          imgAlt:    "LIMS",
+          imgSrc: require("../assets/img/brand/argon-react.png"),
+          imgAlt: "PrimeLIMS",
         }}
       />
 
-      <div className="main-content" ref={mainContent}>
+      <div className="flex min-h-screen flex-col md:pl-64" ref={mainContent}>
         <AdminNavbar
-          {...props}
           brandText={getBrandText()}
+          onMenuClick={() => setSidebarOpen(true)}
         />
 
-        <Routes>
-          {getRoutes()}
+        <main className="flex-1">
+          <Routes>
+            {getRoutes()}
+            <Route path="*" element={<Navigate to="/admin/index" replace />} />
+          </Routes>
+        </main>
 
-          {/* fallback redirect */}
-          <Route path="*" element={<Navigate to="/admin/index" replace />} />
-        </Routes>
-
-        <Container fluid>
-          <AdminFooter />
-        </Container>
+        <AdminFooter />
       </div>
-    </>
+    </div>
   );
 };
 

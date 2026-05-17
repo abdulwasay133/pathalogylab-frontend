@@ -2,9 +2,11 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import {  Route, Routes, Navigate, HashRouter } from "react-router-dom";
 
+import "./index.css";
 import "assets/plugins/nucleo/css/nucleo.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "assets/scss/argon-dashboard-react.scss";
+import "styles/theme-overrides.css";
 import "sweetalert2/dist/sweetalert2.min.css";
 // import "bootstrap/dist/css/bootstrap.min.css";
 

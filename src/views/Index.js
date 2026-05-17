@@ -1,121 +1,241 @@
-import React, { useEffect, useState } from "react";
-import classnames from "classnames";
+import React, { useEffect, useMemo, useState } from "react";
 import Chart from "chart.js";
-import { Line, Bar, Doughnut } from "react-chartjs-2";
+import { Line, Bar } from "react-chartjs-2";
 import {
-  Button, Card, CardHeader, CardBody,
-  NavItem, NavLink, Nav, Progress,
-  Table, Container, Row, Col,
-} from "reactstrap";
-import { chartOptions, parseOptions } from "variables/charts.js";
-import Header from "components/Headers/Header.js";
+  Activity,
+  Clock,
+  FileText,
+  FlaskConical,
+  HandCoins,
+  Stethoscope,
+  Users,
+} from "lucide-react";
 import api from "api/axios";
+import { chartOptions, parseOptions } from "variables/charts.js";
+import DashboardStatCard from "@/components/dashboard/DashboardStatCard";
+import {
+  ChartCard,
+  ChartCardContent,
+  ChartCardHeader,
+  ChartPlot,
+  ChartSectionLabel,
+  ChartSectionTitle,
+} from "@/components/dashboard/DashboardCards";
+import TopDoctorsPanel from "@/components/dashboard/TopDoctorsPanel";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-// ─── Stat Card Component ──────────────────────────────────────────────────────
-const StatCard = ({ title, value, subtitle, icon, iconBg, trend, trendUp }) => (
-  <Card className="card-stats mb-4 mb-xl-0 shadow">
-    <CardBody>
-      <Row>
-        <div className="col">
-          <h5 className="card-title text-uppercase text-muted mb-0"
-            style={{ fontSize: "0.7rem", letterSpacing: "0.05em" }}>
-            {title}
-          </h5>
-          <span className="h2 font-weight-bold mb-0">{value}</span>
-          {subtitle && <p className="mt-2 mb-0 text-muted text-sm">{subtitle}</p>}
-        </div>
-        <Col className="col-auto">
-          <div className={`icon icon-shape ${iconBg} text-white rounded-circle shadow`}
-            style={{ width: 48, height: 48, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <i className={icon} />
-          </div>
-        </Col>
-      </Row>
-      {trend && (
-        <p className="mt-3 mb-0 text-muted text-sm">
-          <span className={`text-${trendUp ? "success" : "danger"} mr-2`}>
-            <i className={`fa fa-arrow-${trendUp ? "up" : "down"}`} /> {trend}
-          </span>
-          <span className="text-nowrap">vs last year</span>
-        </p>
-      )}
-    </CardBody>
-  </Card>
-);
+const STAT_CARDS = [
+  {
+    key: "total_patients",
+    title: "Total Patients",
+    icon: Users,
+    accent: "patients",
+  },
+  {
+    key: "total_invoices",
+    title: "Total Invoices",
+    icon: FileText,
+    accent: "invoices",
+    formatted: true,
+  },
+  {
+    key: "commissions_paid",
+    title: "Commissions Paid",
+    icon: HandCoins,
+    accent: "commissions",
+    formatted: true,
+  },
+  {
+    key: "tests_conducted",
+    title: "Tests Conducted",
+    icon: FlaskConical,
+    accent: "tests",
+  },
+  {
+    key: "active_doctors",
+    title: "Active Doctors",
+    icon: Stethoscope,
+    accent: "doctors",
+  },
+  {
+    key: "pending_reports",
+    title: "Pending Reports",
+    icon: Clock,
+    accent: "pending",
+  },
+];
 
-const LegendItem = ({ color, label, pct }) => (
-  <div className="d-flex align-items-center mb-2">
-    <span style={{ display: "inline-block", width: 12, height: 12, borderRadius: "50%", background: color, marginRight: 8, flexShrink: 0 }} />
-    <span className="text-sm text-muted flex-grow-1">{label}</span>
-    <span className="text-sm font-weight-bold">{pct}%</span>
-  </div>
-);
+const CHART_TICK = "hsl(160 12% 42%)";
+const CHART_GRID = "hsl(152 22% 88%)";
 
-// ─── Chart options (static) ───────────────────────────────────────────────────
+const chartLayout = {
+  padding: { top: 0, right: 8, bottom: 0, left: 4 },
+};
+
 const revenueChartOptions = {
+  layout: chartLayout,
   scales: {
-    yAxes: [{ gridLines: { color: "rgba(255,255,255,0.1)" }, ticks: { fontColor: "rgba(255,255,255,0.7)", callback: (val) => "PKR " + val.toLocaleString() } }],
-    xAxes: [{ gridLines: { color: "rgba(255,255,255,0.05)" }, ticks: { fontColor: "rgba(255,255,255,0.7)" } }],
+    yAxes: [
+      {
+        gridLines: { color: "rgba(255,255,255,0.12)" },
+        ticks: {
+          fontColor: "rgba(255,255,255,0.75)",
+          callback: (val) => "PKR " + val.toLocaleString(),
+        },
+      },
+    ],
+    xAxes: [
+      {
+        gridLines: { color: "rgba(255,255,255,0.06)" },
+        ticks: { fontColor: "rgba(255,255,255,0.75)" },
+      },
+    ],
   },
   legend: { display: false },
-  tooltips: { mode: "index", intersect: false, callbacks: { label: (item) => " PKR " + parseInt(item.value).toLocaleString() } },
+  tooltips: {
+    mode: "index",
+    intersect: false,
+    callbacks: {
+      label: (item) => " PKR " + parseInt(item.value, 10).toLocaleString(),
+    },
+  },
   responsive: true,
   maintainAspectRatio: false,
 };
 
 const testsChartOptions = {
+  layout: chartLayout,
   scales: {
-    yAxes: [{ gridLines: { color: "rgba(0,0,0,0.05)" }, ticks: { fontColor: "#8898aa" } }],
-    xAxes: [{ gridLines: { display: false }, ticks: { fontColor: "#8898aa" } }],
+    yAxes: [
+      {
+        gridLines: { color: CHART_GRID, zeroLineColor: CHART_GRID },
+        ticks: {
+          fontColor: CHART_TICK,
+          beginAtZero: true,
+          padding: 8,
+          fontSize: 11,
+        },
+      },
+    ],
+    xAxes: [
+      {
+        gridLines: { display: false },
+        ticks: {
+          fontColor: CHART_TICK,
+          maxRotation: 45,
+          minRotation: 45,
+          fontSize: 10,
+          autoSkip: true,
+          maxTicksLimit: 12,
+        },
+      },
+    ],
   },
   legend: { display: false },
-  tooltips: { mode: "index", intersect: false },
+  tooltips: {
+    mode: "index",
+    intersect: false,
+    backgroundColor: "rgba(6, 78, 59, 0.92)",
+    titleFontColor: "#ecfdf5",
+    bodyFontColor: "#ecfdf5",
+    borderColor: "#14b8a6",
+    borderWidth: 1,
+  },
   responsive: true,
   maintainAspectRatio: false,
 };
 
 const patientGrowthOptions = {
-  scales: {
-    yAxes: [{ gridLines: { color: "rgba(0,0,0,0.05)" }, ticks: { fontColor: "#8898aa" } }],
-    xAxes: [{ gridLines: { display: false }, ticks: { fontColor: "#8898aa" } }],
+  layout: {
+    padding: { top: 0, right: 8, bottom: 0, left: 4 },
   },
-  legend: { display: true, position: "bottom", labels: { fontColor: "#8898aa", padding: 20 } },
-  tooltips: { mode: "index", intersect: false },
+  scales: {
+    yAxes: [
+      {
+        gridLines: { color: CHART_GRID, zeroLineColor: CHART_GRID },
+        ticks: {
+          fontColor: CHART_TICK,
+          beginAtZero: true,
+          padding: 8,
+          fontSize: 11,
+        },
+      },
+    ],
+    xAxes: [
+      {
+        gridLines: { display: false },
+        ticks: { fontColor: CHART_TICK, fontSize: 11 },
+      },
+    ],
+  },
+  legend: {
+    display: true,
+    position: "bottom",
+    labels: {
+      fontColor: CHART_TICK,
+      padding: 4,
+      boxWidth: 8,
+      usePointStyle: true,
+      fontSize: 10,
+    },
+  },
+  tooltips: {
+    mode: "index",
+    intersect: false,
+    backgroundColor: "rgba(6, 78, 59, 0.92)",
+    titleFontColor: "#ecfdf5",
+    bodyFontColor: "#ecfdf5",
+    borderColor: "#14b8a6",
+    borderWidth: 1,
+  },
   responsive: true,
   maintainAspectRatio: false,
 };
 
-// ─── Main Component ───────────────────────────────────────────────────────────
-const Index = (props) => {
-  const [activeNav, setActiveNav]         = useState(1);
-  const [loading, setLoading]             = useState(true);
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-4 p-4 md:p-6">
+      <Skeleton className="h-10 w-64" />
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Skeleton key={i} className="h-[152px] rounded-xl border border-emerald-100/60" />
+        ))}
+      </div>
+      <div className="grid gap-4 xl:grid-cols-3">
+        <Skeleton className="h-[260px] rounded-none xl:col-span-2" />
+        <Skeleton className="h-[260px] rounded-none" />
+      </div>
+      <div className="grid gap-4 xl:grid-cols-3">
+        <Skeleton className="h-[260px] rounded-none xl:col-span-2" />
+        <Skeleton className="h-[280px] rounded-xl" />
+      </div>
+    </div>
+  );
+}
 
-  // Stats state
-  const [stats, setStats]                 = useState(null);
-
-  // Chart states
-  const [revenueChart, setRevenueChart]   = useState(null);
-  const [testsChart, setTestsChart]       = useState(null);
+const Index = () => {
+  const [revenuePeriod, setRevenuePeriod] = useState("monthly");
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState(null);
+  const [revenueChart, setRevenueChart] = useState(null);
+  const [testsChart, setTestsChart] = useState(null);
   const [patientGrowth, setPatientGrowth] = useState(null);
-
-  // Table states
-  const [recentTests, setRecentTests]     = useState([]);
-  const [topDoctors, setTopDoctors]       = useState([]);
+  const [topDoctors, setTopDoctors] = useState([]);
 
   if (window.Chart) parseOptions(Chart, chartOptions());
 
-  // ── Fetch all dashboard data ──────────────────────────────────────────
   useEffect(() => {
     const fetchAll = async () => {
       try {
         setLoading(true);
-        const [statsRes, revenueRes, testsRes, growthRes, recentRes, doctorsRes] =
+        const [statsRes, revenueRes, testsRes, growthRes, doctorsRes] =
           await Promise.all([
             api.get("/dashboard/stats"),
             api.get("/dashboard/revenue-chart"),
             api.get("/dashboard/tests-chart"),
             api.get("/dashboard/patient-growth"),
-            api.get("/dashboard/recent-tests"),
             api.get("/dashboard/top-doctors"),
           ]);
 
@@ -123,9 +243,7 @@ const Index = (props) => {
         setRevenueChart(revenueRes.data.data);
         setTestsChart(testsRes.data.data);
         setPatientGrowth(growthRes.data.data);
-        setRecentTests(recentRes.data.data);
         setTopDoctors(doctorsRes.data.data);
-        console.log("Dashboard data:", statsRes.data.data);
       } catch (err) {
         console.error("Dashboard fetch error:", err);
       } finally {
@@ -136,32 +254,42 @@ const Index = (props) => {
     fetchAll();
   }, []);
 
-  // ── Build chart data from API ─────────────────────────────────────────
-  const revenueChartData = revenueChart
-    ? {
-        labels: activeNav === 1 ? revenueChart.monthly.labels : revenueChart.weekly.labels,
-        datasets: [{
+  const revenueChartData = useMemo(() => {
+    if (!revenueChart) return null;
+    const isMonthly = revenuePeriod === "monthly";
+    return {
+      labels: isMonthly ? revenueChart.monthly.labels : revenueChart.weekly.labels,
+      datasets: [
+        {
           label: "Revenue (PKR)",
-          data: activeNav === 1 ? revenueChart.monthly.values : revenueChart.weekly.values,
-          borderColor: "#2dce89",
-          backgroundColor: "rgba(45, 206, 137, 0.1)",
+          data: isMonthly ? revenueChart.monthly.values : revenueChart.weekly.values,
+          borderColor: "hsl(160 84% 45%)",
+          backgroundColor: "rgba(16, 185, 129, 0.12)",
           borderWidth: 2,
           fill: true,
-          pointBackgroundColor: "#2dce89",
+          pointBackgroundColor: "hsl(160 84% 45%)",
           tension: 0.4,
-        }],
-      }
-    : null;
+        },
+      ],
+    };
+  }, [revenueChart, revenuePeriod]);
 
   const testsChartData = testsChart
     ? {
         labels: testsChart.labels,
-        datasets: [{
-          label: "Tests",
-          data: testsChart.values,
-          backgroundColor: "rgba(94, 114, 228, 0.85)",
-          borderRadius: 4,
-        }],
+        datasets: [
+          {
+            label: "Tests",
+            data: testsChart.values,
+            backgroundColor: "rgba(13, 148, 136, 0.85)",
+            hoverBackgroundColor: "rgba(15, 118, 110, 0.95)",
+            borderColor: "transparent",
+            borderWidth: 0,
+            borderRadius: 8,
+            barThickness: "flex",
+            maxBarThickness: 36,
+          },
+        ],
       }
     : null;
 
@@ -172,233 +300,152 @@ const Index = (props) => {
           {
             label: "New Patients",
             data: patientGrowth.new,
-            borderColor: "#fb6340",
-            backgroundColor: "rgba(251, 99, 64, 0.1)",
+            borderColor: "#059669",
+            backgroundColor: "rgba(5, 150, 105, 0.12)",
             borderWidth: 2,
             fill: true,
             tension: 0.4,
-            pointBackgroundColor: "#fb6340",
-            pointRadius: 5,
+            pointBackgroundColor: "#059669",
+            pointBorderColor: "#fff",
+            pointBorderWidth: 2,
+            pointRadius: 4,
           },
           {
             label: "Returning Patients",
             data: patientGrowth.returning,
-            borderColor: "#ffd600",
-            backgroundColor: "rgba(255, 214, 0, 0.05)",
+            borderColor: "#0d9488",
+            backgroundColor: "rgba(13, 148, 136, 0.08)",
             borderWidth: 2,
             fill: true,
             tension: 0.4,
-            pointBackgroundColor: "#ffd600",
-            pointRadius: 5,
+            pointBackgroundColor: "#0d9488",
+            pointBorderColor: "#fff",
+            pointBorderWidth: 2,
+            pointRadius: 4,
           },
         ],
       }
     : null;
 
   if (loading) {
-    return (
-      <>
-        <Header />
-        <Container className="mt--7" fluid>
-          <div className="text-center py-5" style={{height:'85vh'}}>
-            {/* <div className="spinner-border text-primary" role="status">
-              <span className="sr-only">Loading...</span>
-            </div> */}
-            <p className="mt-3 text-muted mt-5" >
-              <img src="/images/loader.gif" alt="Loading" style={{height:"10%", width:"10%"}} />
-              <br />
-              Loading...
-            </p>
-          </div>
-        </Container>
-      </>
-    );
+    return <DashboardSkeleton />;
   }
 
   return (
-    <>
-      <Header />
-      <Container className="mt--7" fluid>
+    <div className="space-y-4 p-4 md:p-6">
+      <div className="flex justify-end">
+        <Badge
+          variant="secondary"
+          className="w-fit gap-1.5 border-emerald-200/80 bg-emerald-50 text-emerald-800"
+        >
+          <Activity className="h-3.5 w-3.5" aria-hidden />
+          Live data
+        </Badge>
+      </div>
 
-        {/* ── Row 1: Stat Cards ── */}
-        <Row className="mb-4">
-          <Col lg="6" xl="4" className="mb-4 mb-xl-0">
-            <StatCard
-              title="Total Patients"
-              value={stats?.total_patients?.value?.toLocaleString() ?? "-"}
-              subtitle={stats?.total_patients?.subtitle}
-              icon="fas fa-user-injured"
-              iconBg="bg-gradient-primary"
-              trend={stats?.total_patients?.trend}
-              trendUp={stats?.total_patients?.trend_up}
+      {/* Stat cards */}
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {STAT_CARDS.map(({ key, title, icon, accent, formatted }) => {
+          const item = stats?.[key];
+          const value = formatted
+            ? item?.formatted ?? "—"
+            : item?.value?.toLocaleString?.() ?? item?.value ?? "—";
+
+          return (
+            <DashboardStatCard
+              key={key}
+              title={title}
+              value={value}
+              subtitle={item?.subtitle}
+              icon={icon}
+              accent={accent}
+              trend={item?.trend}
+              trendUp={item?.trend_up}
             />
-          </Col>
-          <Col lg="6" xl="4" className="mb-4 mb-xl-0">
-            <StatCard
-              title="Total Invoices"
-              value={stats?.total_invoices?.formatted ?? "-"}
-              subtitle={stats?.total_invoices?.subtitle}
-              icon="fas fa-file-invoice-dollar"
-              iconBg="bg-gradient-success"
-              trend={stats?.total_invoices?.trend}
-              trendUp={stats?.total_invoices?.trend_up}
-            />
-          </Col>
-          <Col lg="6" xl="4" className="mb-4 mb-xl-0">
-            <StatCard
-              title="Commissions Paid"
-              value={stats?.commissions_paid?.formatted ?? "-"}
-              subtitle={stats?.commissions_paid?.subtitle}
-              icon="fas fa-hand-holding-usd"
-              iconBg="bg-gradient-warning"
-              trend={stats?.commissions_paid?.trend}
-              trendUp={stats?.commissions_paid?.trend_up}
-            />
-          </Col>
-        </Row>
+          );
+        })}
+      </div>
 
-        {/* ── Row 2: Stat Cards ── */}
-        <Row className="mb-5">
-          <Col lg="6" xl="4" className="mb-4 mb-xl-0">
-            <StatCard
-              title="Tests Conducted"
-              value={stats?.tests_conducted?.value?.toLocaleString() ?? "-"}
-              subtitle={stats?.tests_conducted?.subtitle}
-              icon="fas fa-vials"
-              iconBg="bg-gradient-info"
-              trend={stats?.tests_conducted?.trend}
-              trendUp={stats?.tests_conducted?.trend_up}
-            />
-          </Col>
-          <Col lg="6" xl="4" className="mb-4 mb-xl-0">
-            <StatCard
-              title="Active Doctors"
-              value={stats?.active_doctors?.value ?? "-"}
-              subtitle={stats?.active_doctors?.subtitle}
-              icon="fas fa-user-md"
-              iconBg="bg-gradient-danger"
-              trend={stats?.active_doctors?.trend}
-              trendUp={stats?.active_doctors?.trend_up}
-            />
-          </Col>
-          <Col lg="6" xl="4" className="mb-4 mb-xl-0">
-            <StatCard
-              title="Pending Reports"
-              value={stats?.pending_reports?.value ?? "-"}
-              subtitle={stats?.pending_reports?.subtitle}
-              icon="fas fa-clock"
-              iconBg="bg-gradient-default"
-              trend={stats?.pending_reports?.trend}
-              trendUp={stats?.pending_reports?.trend_up}
-            />
-          </Col>
-        </Row>
+      {/* Revenue + tests */}
+      <div className="grid items-start gap-4 xl:grid-cols-3">
+        <ChartCard
+          className="overflow-hidden border-0 text-white shadow-lg xl:col-span-2"
+          style={{
+            background:
+              "linear-gradient(135deg, #064e3b 0%, #0f766e 45%, #14b8a6 100%)",
+          }}
+        >
+          <ChartCardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <div className="space-y-0.5">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-white/70">
+                Overview
+              </p>
+              <h3 className="text-base font-semibold text-white">Sales Revenue</h3>
+            </div>
+            <Tabs
+              value={revenuePeriod}
+              onValueChange={setRevenuePeriod}
+              className="w-auto"
+            >
+              <TabsList className="bg-white/10 text-white/80 h-8">
+                <TabsTrigger
+                  value="monthly"
+                  className="text-xs data-[state=active]:bg-white data-[state=active]:text-emerald-900"
+                >
+                  Monthly
+                </TabsTrigger>
+                <TabsTrigger
+                  value="weekly"
+                  className="text-xs data-[state=active]:bg-white data-[state=active]:text-emerald-900"
+                >
+                  Weekly
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </ChartCardHeader>
+          <ChartCardContent>
+            <ChartPlot tall>
+              {revenueChartData && (
+                <Line data={revenueChartData} options={revenueChartOptions} />
+              )}
+            </ChartPlot>
+          </ChartCardContent>
+        </ChartCard>
 
-        {/* ── Sales Revenue + Tests Bar ── */}
-        <Row className="mb-5">
-          <Col className="mb-5 mb-xl-0" xl="8">
-            <Card className="bg-gradient-default shadow" style={{ minHeight: 380 }}>
-              <CardHeader className="bg-transparent">
-                <Row className="align-items-center">
-                  <div className="col">
-                    <h6 className="text-uppercase text-light ls-1 mb-1" style={{ fontSize: "0.7rem" }}>Overview</h6>
-                    <h2 className="text-white mb-0">Sales Revenue</h2>
-                  </div>
-                  <div className="col">
-                    <Nav className="justify-content-end" pills>
-                      <NavItem>
-                        <NavLink className={classnames("py-2 px-3", { active: activeNav === 1 })}
-                          href="#" onClick={(e) => { e.preventDefault(); setActiveNav(1); }}>
-                          <span className="d-none d-md-block">Monthly</span>
-                        </NavLink>
-                      </NavItem>
-                      <NavItem>
-                        <NavLink className={classnames("py-2 px-3", { active: activeNav === 2 })}
-                          href="#" onClick={(e) => { e.preventDefault(); setActiveNav(2); }}>
-                          <span className="d-none d-md-block">Weekly</span>
-                        </NavLink>
-                      </NavItem>
-                    </Nav>
-                  </div>
-                </Row>
-              </CardHeader>
-              <CardBody>
-                <div className="chart" style={{ height: 280 }}>
-                  {revenueChartData && (
-                    <Line data={revenueChartData} options={revenueChartOptions} />
-                  )}
-                </div>
-              </CardBody>
-            </Card>
-          </Col>
+        <ChartCard>
+          <ChartCardHeader>
+            <ChartSectionLabel>Performance</ChartSectionLabel>
+            <ChartSectionTitle>Tests Conducted</ChartSectionTitle>
+          </ChartCardHeader>
+          <ChartCardContent>
+            <ChartPlot>
+              {testsChartData && (
+                <Bar data={testsChartData} options={testsChartOptions} />
+              )}
+            </ChartPlot>
+          </ChartCardContent>
+        </ChartCard>
+      </div>
 
-          <Col xl="4">
-            <Card className="shadow" style={{ minHeight: 380 }}>
-              <CardHeader className="bg-transparent">
-                <h6 className="text-uppercase text-muted ls-1 mb-1" style={{ fontSize: "0.7rem" }}>Performance</h6>
-                <h2 className="mb-0">Tests Conducted</h2>
-              </CardHeader>
-              <CardBody>
-                <div className="chart" style={{ height: 280 }}>
-                  {testsChartData && (
-                    <Bar data={testsChartData} options={testsChartOptions} />
-                  )}
-                </div>
-              </CardBody>
-            </Card>
-          </Col>
-        </Row>
+      {/* Patient growth + top doctors */}
+      <div className="grid items-start gap-4 xl:grid-cols-3">
+        <ChartCard className="xl:col-span-2">
+          <ChartCardHeader>
+            <ChartSectionLabel>Analytics</ChartSectionLabel>
+            <ChartSectionTitle>Patient Growth</ChartSectionTitle>
+          </ChartCardHeader>
+          <ChartCardContent>
+            <ChartPlot tall>
+              {patientGrowthChartData && (
+                <Line data={patientGrowthChartData} options={patientGrowthOptions} />
+              )}
+            </ChartPlot>
+          </ChartCardContent>
+        </ChartCard>
 
-        {/* ── Patient Growth ── */}
-        <Row className="mb-5">
-          <Col xl="8">
-            <Card className="shadow" style={{ minHeight: 360 }}>
-              <CardHeader className="bg-transparent border-0">
-                <h6 className="text-uppercase text-muted ls-1 mb-1" style={{ fontSize: "0.7rem" }}>Analytics</h6>
-                <h2 className="mb-0">Patient Growth</h2>
-              </CardHeader>
-              <CardBody>
-                <div className="chart" style={{ height: 260 }}>
-                  {patientGrowthChartData && (
-                    <Line data={patientGrowthChartData} options={patientGrowthOptions} />
-                  )}
-                </div>
-              </CardBody>
-            </Card>
-          </Col>
-                    <Col xl="4">
-            <Card className="shadow">
-              <CardHeader className="border-0">
-                <h3 className="mb-0">Top Doctors</h3>
-              </CardHeader>
-              <CardBody>
-                {topDoctors.map((doc, i) => (
-                  <div key={i} className="mb-4">
-                    <div className="d-flex justify-content-between align-items-center mb-1">
-                      <div>
-                        <span className="font-weight-bold text-sm">{doc.name}</span>
-                        <br />
-                        <span className="text-muted" style={{ fontSize: "0.75rem" }}>{doc.specialty}</span>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-sm font-weight-bold text-success">{doc.commission}</span>
-                        <br />
-                        <span className="text-muted" style={{ fontSize: "0.75rem" }}>{doc.referrals} referrals</span>
-                      </div>
-                    </div>
-                    <Progress max="100" value={doc.progress} barClassName={doc.color} style={{ height: 6, borderRadius: 4 }} />
-                  </div>
-                ))}
-              </CardBody>
-            </Card>
-          </Col>
-        </Row>
-
-        {/* ── Recent Tests + Top Doctors ── */}
-
-
-      </Container>
-    </>
+        <TopDoctorsPanel doctors={topDoctors} />
+      </div>
+    </div>
   );
 };
 

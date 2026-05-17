@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Medical green theme */
+    --background: 150 30% 97%;
+    --foreground: 160 35% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 160 35% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 160 35% 12%;
+    --primary: 158 64% 32%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 152 35% 93%;
+    --secondary-foreground: 160 35% 15%;
+    --muted: 150 25% 94%;
+    --muted-foreground: 160 12% 42%;
+    --accent: 152 40% 92%;
+    --accent-foreground: 160 35% 15%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 152 22% 88%;
+    --input: 152 22% 88%;
+    --ring: 158 64% 32%;
+    --radius: 0.75rem;
+    --chart-1: 158 64% 32%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 142 71% 45%;
+    --chart-4: 84 60% 42%;
+    --chart-5: 199 89% 38%;
+  }
+
+  .dark {
+    --background: 160 30% 8%;
+    --foreground: 150 20% 96%;
+    --card: 160 28% 11%;
+    --card-foreground: 150 20% 96%;
+    --popover: 160 28% 11%;
+    --popover-foreground: 150 20% 96%;
+    --primary: 158 55% 42%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 160 22% 16%;
+    --secondary-foreground: 150 20% 96%;
+    --muted: 160 22% 16%;
+    --muted-foreground: 152 15% 62%;
+    --accent: 160 22% 16%;
+    --accent-foreground: 150 20% 96%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 160 20% 18%;
+    --input: 160 20% 18%;
+    --ring: 158 55% 42%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+/* Legacy Argon main-content — reset for new shell */
+.main-content {
+  background: transparent !important;
+  margin-left: 0 !important;
+}
