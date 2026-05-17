@@ -16,21 +16,19 @@ import {
   Col,
 } from "reactstrap";
 import { useAuth } from "context/AuthContext";
+import T from "theme/tokens";
 
-/* ══════════════════════════════════════════════════════════
-   DESIGN TOKENS
-══════════════════════════════════════════════════════════ */
-const T = {
-  bg:           "#ffffff",
-  border:       "#e9ecef",
-  text:         "#525f7f",
-  textMuted:    "#adb5bd",
-  textActive:   "#5e72e4",
-  activeBg:     "#f0f3ff",
-  activeBorder: "#5e72e4",
-  hoverBg:      "#f8f9fe",
-  subActiveBg:  "#e8ecfd",
-  subBorder:    "#825ee4",
+const sidebarTokens = {
+  bg:           T.colors.surface,
+  border:       T.colors.border,
+  text:         T.colors.textSecondary,
+  textMuted:    T.colors.textMuted,
+  textActive:   T.colors.primary,
+  activeBg:     T.colors.sidebarActive,
+  activeBorder: T.colors.sidebarActiveBorder,
+  hoverBg:      T.colors.surfaceHover,
+  subActiveBg:  "#e0eaff",
+  subBorder:    T.colors.primaryDark,
 };
 
 /* ── check if a route is visible for given user roles ── */
@@ -61,15 +59,15 @@ function SingleLink({ prop, onClick }) {
           padding: "9px 14px", borderRadius: 10,
           textDecoration: "none", fontSize: 13,
           fontWeight: active ? 700 : 500,
-          color:      active ? T.textActive : T.text,
-          background: active ? T.activeBg   : "transparent",
-          borderLeft: `3px solid ${active ? T.activeBorder : "transparent"}`,
+          color:      active ? sidebarTokens.textActive : sidebarTokens.text,
+          background: active ? sidebarTokens.activeBg   : "transparent",
+          borderLeft: `3px solid ${active ? sidebarTokens.activeBorder : "transparent"}`,
           transition: "all .15s",
         }}
-        onMouseEnter={e => { if (!active) e.currentTarget.style.background = T.hoverBg; }}
+        onMouseEnter={e => { if (!active) e.currentTarget.style.background = sidebarTokens.hoverBg; }}
         onMouseLeave={e => { if (!active) e.currentTarget.style.background = "transparent"; }}
       >
-        <i className={prop.icon} style={{ width: 18, textAlign: "center", fontSize: 13, flexShrink: 0, color: active ? T.textActive : T.textMuted }} />
+        <i className={prop.icon} style={{ width: 18, textAlign: "center", fontSize: 13, flexShrink: 0, color: active ? sidebarTokens.textActive : sidebarTokens.textMuted }} />
         <span>{prop.name}</span>
       </RouterNavLink>
     </li>
@@ -103,19 +101,19 @@ function GroupLink({ prop, userRoles, onChildClick }) {
           padding: "9px 14px", borderRadius: 10, cursor: "pointer",
           fontSize: 13,
           fontWeight: groupActive ? 700 : 500,
-          color:      groupActive ? T.textActive : T.text,
-          background: groupActive ? T.activeBg   : "transparent",
-          borderLeft: `3px solid ${groupActive ? T.activeBorder : "transparent"}`,
+          color:      groupActive ? sidebarTokens.textActive : sidebarTokens.text,
+          background: groupActive ? sidebarTokens.activeBg   : "transparent",
+          borderLeft: `3px solid ${groupActive ? sidebarTokens.activeBorder : "transparent"}`,
           transition: "all .15s", userSelect: "none",
         }}
-        onMouseEnter={e => { if (!groupActive) e.currentTarget.style.background = T.hoverBg; }}
-        onMouseLeave={e => { if (!groupActive) e.currentTarget.style.background = groupActive ? T.activeBg : "transparent"; }}
+        onMouseEnter={e => { if (!groupActive) e.currentTarget.style.background = sidebarTokens.hoverBg; }}
+        onMouseLeave={e => { if (!groupActive) e.currentTarget.style.background = groupActive ? sidebarTokens.activeBg : "transparent"; }}
       >
-        <i className={prop.icon} style={{ width: 18, textAlign: "center", fontSize: 13, flexShrink: 0, color: groupActive ? T.textActive : T.textMuted }} />
+        <i className={prop.icon} style={{ width: 18, textAlign: "center", fontSize: 13, flexShrink: 0, color: groupActive ? sidebarTokens.textActive : sidebarTokens.textMuted }} />
         <span style={{ flex: 1 }}>{prop.name}</span>
         {/* chevron */}
         <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"
-          style={{ flexShrink: 0, color: T.textMuted, transform: open ? "rotate(90deg)" : "rotate(0deg)", transition: "transform .2s" }}>
+          style={{ flexShrink: 0, color: sidebarTokens.textMuted, transform: open ? "rotate(90deg)" : "rotate(0deg)", transition: "transform .2s" }}>
           <polyline points="3,2 7,5 3,8" />
         </svg>
       </div>
@@ -136,15 +134,15 @@ function GroupLink({ prop, userRoles, onChildClick }) {
                     padding: "8px 14px 8px 44px", borderRadius: 8,
                     textDecoration: "none", fontSize: 12,
                     fontWeight: childActive ? 700 : 500,
-                    color:      childActive ? T.textActive : T.text,
-                    background: childActive ? T.subActiveBg : "transparent",
-                    borderLeft: `3px solid ${childActive ? T.subBorder : "transparent"}`,
+                    color:      childActive ? sidebarTokens.textActive : sidebarTokens.text,
+                    background: childActive ? sidebarTokens.subActiveBg : "transparent",
+                    borderLeft: `3px solid ${childActive ? sidebarTokens.subBorder : "transparent"}`,
                     transition: "all .15s",
                   }}
-                  onMouseEnter={e => { if (!childActive) e.currentTarget.style.background = T.hoverBg; }}
+                  onMouseEnter={e => { if (!childActive) e.currentTarget.style.background = sidebarTokens.hoverBg; }}
                   onMouseLeave={e => { if (!childActive) e.currentTarget.style.background = "transparent"; }}
                 >
-                  <i className={child.icon} style={{ width: 15, textAlign: "center", fontSize: 11, flexShrink: 0, color: childActive ? T.textActive : T.textMuted }} />
+                  <i className={child.icon} style={{ width: 15, textAlign: "center", fontSize: 11, flexShrink: 0, color: childActive ? sidebarTokens.textActive : sidebarTokens.textMuted }} />
                   {child.name}
                 </RouterNavLink>
               </li>
@@ -185,8 +183,8 @@ const Sidebar = (props) => {
       expand="md"
       id="sidenav-main"
       style={{
-        background: T.bg,
-        borderRight: `1px solid ${T.border}`,
+        background: sidebarTokens.bg,
+        borderRight: `1px solid ${sidebarTokens.border}`,
         boxShadow: "2px 0 20px rgba(0,0,0,.06)",
         padding: 0,
       }}
@@ -195,22 +193,23 @@ const Sidebar = (props) => {
 
         {/* ── Mobile toggler ── */}
         <button className="navbar-toggler" type="button" onClick={toggleCollapse}
-          style={{ color: T.text, border: `1px solid ${T.border}`, margin: "12px 16px" }}>
-          <span className="navbar-toggler-icon" />
+          style={{ color: sidebarTokens.text, border: `1px solid ${sidebarTokens.border}`, margin: "12px 16px" }}>
+          {/* <span className="navbar-toggler-icon" /> */}
+          <i className="fa-solid fa-bars" style={{ fontSize: 18 }}></i>
         </button>
 
         {/* ── Logo / Brand ── */}
-        <div style={{ padding: "20px 20px 16px", borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", gap: 12 }}>
+        <div style={{ padding: "20px 20px 16px", borderBottom: `1px solid ${sidebarTokens.border}`, display: "flex", alignItems: "center", gap: 12 }}>
           {logo ? (
             <NavbarBrand className="pt-0" {...navbarBrandProps} style={{ margin: 0, padding: 0 }}>
               <img alt={logo.imgAlt} src={logo.imgSrc} style={{ maxHeight: 38, objectFit: "contain" }} />
             </NavbarBrand>
           ) : (
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ width: 38, height: 38, borderRadius: 10, flexShrink: 0, background: "linear-gradient(135deg,#5e72e4,#825ee4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, boxShadow: "0 4px 10px rgba(94,114,228,.3)" }}>🔬</div>
+              <div style={{ width: 38, height: 38, borderRadius: 10, flexShrink: 0, background: T.gradient.primary, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, boxShadow: "0 4px 10px rgba(59,108,244,.3)" }}>🔬</div>
               <div>
-                <div style={{ color: "#32325d", fontWeight: 800, fontSize: 15 }}>LIMS</div>
-                <div style={{ color: T.textMuted, fontSize: 10, fontWeight: 600, letterSpacing: 1 }}>Lab Info System</div>
+                <div style={{ color: T.colors.text, fontWeight: 800, fontSize: 15 }}>LIMS</div>
+                <div style={{ color: sidebarTokens.textMuted, fontSize: 10, fontWeight: 600, letterSpacing: 1 }}>Lab Info System</div>
               </div>
             </div>
           )}
@@ -218,13 +217,13 @@ const Sidebar = (props) => {
 
         {/* ── Logged-in user info ── */}
         {user && (
-          <div style={{ padding: "10px 20px", borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", gap: 10, background: "#fafbff" }}>
-            <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg,#5e72e4,#825ee4)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 800, fontSize: 13, flexShrink: 0 }}>
+          <div style={{ padding: "10px 20px", borderBottom: `1px solid ${sidebarTokens.border}`, display: "flex", alignItems: "center", gap: 10, background: "#fafbff" }}>
+            <div style={{ width: 32, height: 32, borderRadius: "50%", background: T.gradient.primary, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 800, fontSize: 13, flexShrink: 0 }}>
               {user.name?.charAt(0).toUpperCase()}
             </div>
             <div style={{ overflow: "hidden" }}>
-              <div style={{ fontWeight: 700, fontSize: 13, color: "#32325d", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{user.name}</div>
-              <div style={{ fontSize: 10, fontWeight: 700, color: "#5e72e4", textTransform: "capitalize", letterSpacing: .3 }}>
+              <div style={{ fontWeight: 700, fontSize: 13, color: T.colors.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{user.name}</div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: T.colors.primary, textTransform: "capitalize", letterSpacing: .3 }}>
                 🛡 {userRoles?.[0] || "user"}
               </div>
             </div>
@@ -263,7 +262,7 @@ const Sidebar = (props) => {
         <Collapse navbar isOpen={collapseOpen}>
 
           {/* mobile header */}
-          <div className="navbar-collapse-header d-md-none" style={{ borderBottom: `1px solid ${T.border}`, padding: "12px 16px" }}>
+          <div className="navbar-collapse-header d-md-none" style={{ borderBottom: `1px solid ${sidebarTokens.border}`, padding: "12px 16px" }}>
             <Row>
               {logo && (
                 <Col className="collapse-brand" xs="6">
@@ -279,7 +278,7 @@ const Sidebar = (props) => {
           </div>
 
           {/* section label */}
-          <div style={{ padding: "4px 22px 5px", fontSize: 9, fontWeight: 800, color: T.textMuted, letterSpacing: 1.8, textTransform: "uppercase" }}>
+          <div style={{ padding: "4px 22px 5px", fontSize: 9, fontWeight: 800, color: sidebarTokens.textMuted, letterSpacing: 1.8, textTransform: "uppercase" }}>
             Navigation
           </div>
 
@@ -294,10 +293,10 @@ const Sidebar = (props) => {
             </ul>
           </Nav>
 
-          <hr style={{ margin: "0 20px 12px", borderColor: T.border }} />
+          <hr style={{ margin: "0 20px 12px", borderColor: sidebarTokens.border }} />
 
           {/* footer */}
-          <div style={{ padding: "0 20px 20px", fontSize: 11, color: T.textMuted, textAlign: "center" }}>
+          <div style={{ padding: "0 20px 20px", fontSize: 11, color: sidebarTokens.textMuted, textAlign: "center" }}>
             LIMS v1.0 · {new Date().getFullYear()}
           </div>
 

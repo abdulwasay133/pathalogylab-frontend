@@ -1,17 +1,21 @@
 import api from "api/axios";
 import PatientTestsModal from "components/PatientTestsModal";
 import { useEffect, useMemo, useState } from "react";
-import { Card, CardBody, CardHeader, Col, Container, Row } from "reactstrap";
+import { PageToolbarCard, searchInputStyle } from "components/layout/PageShell";
+import { Card, CardBody, Col, Container, Row } from "reactstrap";
+import T from "theme/tokens";
+import { btnPrimary, btnGhost } from "theme/formStyles";
+import { getVariant } from "theme/pageVariants";
 
 const PATIENTS_PER_PAGE = 8;
 
 /* ── info row inside patient card ── */
 const InfoRow = ({ label, value }) => (
   <div style={{ display: "flex", gap: 6, marginBottom: 4 }}>
-    <span style={{ fontSize: 11, fontWeight: 700, color: "#8898aa", minWidth: 52, textTransform: "uppercase", letterSpacing: 0.3, paddingTop: 1 }}>
+    <span style={{ fontSize: 11, fontWeight: 700, color: T.colors.textMuted, minWidth: 52, textTransform: "uppercase", letterSpacing: 0.3, paddingTop: 1 }}>
       {label}
     </span>
-    <span style={{ fontSize: 13, color: "#32325d", fontWeight: 500 }}>
+    <span style={{ fontSize: 13, color: T.colors.text, fontWeight: 500 }}>
       {value || "—"}
     </span>
   </div>
@@ -88,26 +92,20 @@ export default function PendingPatients() {
         {/* ── Top bar ── */}
         <Row className="mb-4">
           <Col>
-            <Card className="shadow border-0" style={{ borderRadius: 16 }}>
-              <CardHeader
-                className="bg-white border-0"
-                style={{ padding: "1.1rem 1.5rem", borderBottom: "1px solid #f0f0f0" }}
-              >
+            <PageToolbarCard>
                 <div className="d-flex align-items-center justify-content-between flex-wrap" style={{ gap: 12 }}>
 
                   {/* title */}
                   <div className="d-flex align-items-center" style={{ gap: 10 }}>
                     <span style={{
                       width: 40, height: 40, borderRadius: 10,
-                      background: "linear-gradient(135deg,#fb6340,#fbb140)",
+                      background: getVariant("warning").gradient,
                       display: "flex", alignItems: "center",
                       justifyContent: "center", fontSize: 18,
                     }}><i className="fa-solid fa-user text-white"></i></span>
                     <div>
-                      <h3 className="mb-0" style={{ fontWeight: 700, color: "#32325d" }}>
-                        Pending Patients
-                      </h3>
-                      <p className="mb-0" style={{ fontSize: 12, color: "#8898aa" }}>
+                      <h3 className="mb-0 lims-page-title">Pending Patients</h3>
+                      <p className="mb-0 lims-page-subtitle">
                         Patients awaiting test results
                       </p>
                     </div>
@@ -122,16 +120,13 @@ export default function PendingPatients() {
                         position: "absolute", left: 11, top: "50%",
                         transform: "translateY(-50%)", fontSize: 14, color: "#adb5bd",
                         pointerEvents: "none",
-                      }}>🔍</span>
+                      }}><i className="fa-solid fa-magnifying-glass"></i></span>
                       <input
                         value={search}
                         onChange={(e) => { setSearch(e.target.value); setPage(1); }}
                         placeholder="Search name / phone / ID"
-                        style={{
-                          borderRadius: 8, border: "1px solid #e0e6ed",
-                          padding: "8px 12px 8px 32px", fontSize: 13,
-                          color: "#32325d", outline: "none", width: 220,
-                        }}
+                        className="lims-search-input"
+                        style={{ ...searchInputStyle, width: 240 }}
                       />
                     </div>
 
@@ -178,20 +173,14 @@ export default function PendingPatients() {
                     <button
                       onClick={fetchPatients}
                       disabled={loading}
-                      style={{
-                        borderRadius: 8, border: "1px solid #e0e6ed",
-                        background: "#f8f9fe", color: "#525f7f",
-                        fontWeight: 600, fontSize: 12, padding: "7px 14px",
-                        cursor: "pointer",
-                      }}
+                      style={{ ...btnGhost, fontSize: 12, padding: "7px 14px" }}
                     >
                       {loading ? "…" : "↺ Refresh"}
                     </button>
 
                   </div>
                 </div>
-              </CardHeader>
-            </Card>
+            </PageToolbarCard>
           </Col>
         </Row>
 
@@ -217,7 +206,7 @@ export default function PendingPatients() {
             <Col>
               <Card className="shadow border-0" style={{ borderRadius: 14 }}>
                 <CardBody style={{ textAlign: "center", padding: "48px 24px" }}>
-                  <div style={{ fontSize: 40, marginBottom: 10 }}>🔍</div>
+                  <div style={{ fontSize: 40, marginBottom: 10 }}><i className="fa-solid fa-users"></i></div>
                   <h5 style={{ color: "#525f7f", fontWeight: 600 }}>No patients found</h5>
                   <p style={{ color: "#adb5bd", fontSize: 13 }}>
                     {search ? `No results for "${search}"` : "No pending patients at the moment"}
@@ -229,27 +218,8 @@ export default function PendingPatients() {
 
           {!loading && paginatedPatients.map((p) => (
             <Col xl="3" lg="4" md="6" sm="12" key={p.id} className="mb-4">
-              <Card
-                className="shadow border-0 h-100"
-                style={{
-                  borderRadius: 14, overflow: "hidden",
-                  transition: "transform .15s, box-shadow .15s",
-                  cursor: "default",
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.transform = "translateY(-3px)";
-                  e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,.1)";
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "";
-                }}
-              >
-                {/* card top accent */}
-                <div style={{
-                  height: 4,
-                  background: "linear-gradient(90deg,#fb6340,#fbb140)",
-                }} />
+              <Card className="lims-patient-card shadow border-0 h-100">
+                <div className="lims-patient-card-accent" style={{ background: getVariant("warning").gradient }} />
 
                 <CardBody style={{ padding: 16 }}>
                   {/* name + status */}
@@ -298,13 +268,7 @@ export default function PendingPatients() {
 
                   {/* CTA */}
                   <button
-                    style={{
-                      width: "100%", borderRadius: 8, border: "none",
-                      fontWeight: 600, fontSize: 13, padding: "9px 0",
-                      background: "linear-gradient(135deg,#11cdef,#1171ef)",
-                      color: "#fff", cursor: "pointer",
-                      boxShadow: "0 4px 10px rgba(17,193,239,.25)",
-                    }}
+                    style={{ ...btnPrimary, width: "100%", justifyContent: "center", padding: "9px 0" }}
                     onClick={() => { setSelectedPatient(p); setModalOpen(true); }}
                   >
                     View Tests →

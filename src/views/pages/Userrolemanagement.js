@@ -1,22 +1,27 @@
 import api from "api/axios";
 import ErrorDialoge from "components/dialogs/ErrorDialoge";
 import { useEffect, useState } from "react";
+import { toast } from "utils/toast";
+import UserFormModal from "components/modals/UserFormModal";
+import RoleFormModal from "components/modals/RoleFormModal";
 import { useForm } from "react-hook-form";
-import { toast } from "react-toastify";
+import { PageToolbarCard } from "components/layout/PageShell";
 import { Card, CardBody, CardHeader, Col, Container, Row } from "reactstrap";
+import T from "theme/tokens";
+import { inputStyle as iS, onInputFocus as iFocus, onInputBlur as iBlur, btnPrimary } from "theme/formStyles";
 
 /* ══════════════════════════════════════════════════════════
    CONSTANTS
 ══════════════════════════════════════════════════════════ */
 const MODULE_META = {
-  test:       { label: "Tests",       icon: "🧪", color: "#5e72e4" },
-  doctor:     { label: "Doctors",     icon: "👨‍⚕️", color: "#2dce89" },
-  patient:    { label: "Patients",    icon: "🏥", color: "#11cdef" },
-  commission: { label: "Commissions", icon: "💰", color: "#fb6340" },
-  report:     { label: "Reports",     icon: "📄", color: "#f5365c" },
-  settings:   { label: "Settings",    icon: "⚙️", color: "#8898aa" },
-  user:       { label: "Users",       icon: "👤", color: "#825ee4" },
-  role:       { label: "Roles",       icon: "🛡️", color: "#fbb140" },
+  test:       { label: "Tests",       icon: "fa-solid fa-vial-circle-check", color: "#5e72e4" },
+  doctor:     { label: "Doctors",     icon: "fa-solid fa-user-md", color: "#2dce89" },
+  patient:    { label: "Patients",    icon: "fa-solid fa-user-injured", color: "#11cdef" },
+  commission: { label: "Commissions", icon: "fa-solid fa-coins", color: "#fb6340" },
+  report:     { label: "Reports",     icon: "fa-solid fa-file-alt", color: "#f5365c" },
+  settings:   { label: "Settings",    icon: "fa-solid fa-cog", color: "#8898aa" },
+  user:       { label: "Users",       icon: "fa-solid fa-users", color: "#825ee4" },
+  role:       { label: "Roles",       icon: "fa-solid fa-shield-alt", color: "#fbb140" },
 };
 
 const ROLE_STYLE = {
@@ -31,15 +36,7 @@ const getRoleStyle = (name) =>
 /* ══════════════════════════════════════════════════════════
    SHARED STYLES
 ══════════════════════════════════════════════════════════ */
-const iS = {
-  borderRadius: 8, border: "1px solid #e0e6ed",
-  padding: "10px 13px", fontSize: 14, color: "#32325d",
-  background: "#fff", width: "100%", outline: "none",
-  transition: "border .15s, box-shadow .15s", boxSizing: "border-box",
-};
-const iErr   = { border: "1px solid #f5365c" };
-const iFocus = (e) => { e.target.style.border = "1px solid #5e72e4"; e.target.style.boxShadow = "0 0 0 3px rgba(94,114,228,.1)"; };
-const iBlur  = (e) => { e.target.style.border = "1px solid #e0e6ed"; e.target.style.boxShadow = "none"; };
+const iErr = { border: `1px solid ${T.colors.danger}` };
 
 /* ══════════════════════════════════════════════════════════
    SMALL COMPONENTS
@@ -54,9 +51,9 @@ const RoleBadge = ({ name }) => {
 };
 
 const TabBtn = ({ icon, label, active, onClick, count }) => (
-  <button onClick={onClick} style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 18px", borderRadius: 9, border: "none", cursor: "pointer", fontSize: 13, fontWeight: active ? 700 : 500, background: active ? "linear-gradient(135deg,#5e72e4,#825ee4)" : "#f0f3ff", color: active ? "#fff" : "#525f7f", boxShadow: active ? "0 4px 12px rgba(94,114,228,.3)" : "none", transition: "all .15s" }}>
-    <span>{icon}</span>{label}
-    <span style={{ background: active ? "rgba(255,255,255,.25)" : "#e0e6ed", color: active ? "#fff" : "#525f7f", borderRadius: 999, fontSize: 10, fontWeight: 700, padding: "1px 7px" }}>{count}</span>
+  <button onClick={onClick} style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 18px", borderRadius: 10, border: active ? "none" : `1px solid ${T.colors.border}`, cursor: "pointer", fontSize: 13, fontWeight: active ? 700 : 500, background: active ? T.gradient.primary : "#f8fafc", color: active ? "#fff" : T.colors.textSecondary, boxShadow: active ? "0 4px 12px rgba(59,108,244,.3)" : "none", transition: "all .15s" }}>
+    <span><i className={icon}></i></span>{label}
+    <span style={{ background: active ? "rgba(255,255,255,.25)" : "#e0e6ed", color: active ? "#fff" : "#525f7f", borderRadius: 999, fontSize: 10, fontWeight: 700, padding: "1px 7px" }}><i className={count}></i></span>
   </button>
 );
 
@@ -83,7 +80,7 @@ const ModalHeader = ({ gradient, icon, title, subtitle, onClose }) => (
   <div style={{ background: gradient, padding: "18px 24px", flexShrink: 0 }}>
     <div className="d-flex align-items-center justify-content-between">
       <div className="d-flex align-items-center" style={{ gap: 10 }}>
-        <span style={{ fontSize: 22 }}>{icon}</span>
+        <span style={{ fontSize: 22 }}><i className={icon}></i></span>
         <div>
           <div style={{ color: "#fff", fontWeight: 700, fontSize: 16 }}>{title}</div>
           <div style={{ color: "rgba(255,255,255,.7)", fontSize: 12 }}>{subtitle}</div>
@@ -197,7 +194,7 @@ function UserModal({ editUser, roles, onClose, onSaved }) {
           onCancel={onClose}
           onSave={handleSubmit(onSubmit)}
           saving={saving}
-          saveLabel={isEdit ? "💾 Update User" : "✅ Create User"}
+          saveLabel={isEdit ? "Update User" : "Create User"}
         />
       </ModalBox>
     </ModalOverlay>
@@ -265,7 +262,7 @@ function RoleModal({ editRole, allPermissions, onClose, onSaved }) {
 
           {/* Permissions */}
           <div className="d-flex align-items-center mb-3" style={{ gap: 8 }}>
-            <span style={{ width: 26, height: 26, borderRadius: 7, background: "linear-gradient(135deg,#5e72e4,#825ee4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>🔑</span>
+            <span style={{ width: 26, height: 26, borderRadius: 7, background: "linear-gradient(135deg,#5e72e4,#825ee4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}><i className="fa-solid fa-key text-white"></i></span>
             <h6 className="mb-0 text-muted" style={{ letterSpacing: 1, fontSize: 11, textTransform: "uppercase" }}>Permissions</h6>
             <span style={{ marginLeft: "auto", fontSize: 11, color: "#8898aa" }}>{selected.length} selected</span>
           </div>
@@ -281,7 +278,7 @@ function RoleModal({ editRole, allPermissions, onClose, onSaved }) {
                 <div key={module} style={{ border: "1px solid #e9ecf3", borderRadius: 10, overflow: "hidden" }}>
                   {/* module header */}
                   <div onClick={() => toggleModule(modulePerms)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", cursor: "pointer", background: allSel ? `${cfg.color}10` : someSel ? "#fafbff" : "#f8f9fe", borderBottom: "1px solid #e9ecf3", userSelect: "none" }}>
-                    <div style={{ width: 28, height: 28, borderRadius: 7, background: `${cfg.color}15`, border: `1px solid ${cfg.color}30`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0 }}>{cfg.icon}</div>
+                    <div style={{ width: 28, height: 28, borderRadius: 7, background: `${cfg.color}15`, border: `1px solid ${cfg.color}30`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0 }}><i className={cfg.icon}></i></div>
                     <span style={{ fontWeight: 700, fontSize: 13, color: "#32325d", flex: 1 }}>{cfg.label}</span>
                     <span style={{ fontSize: 11, color: "#8898aa" }}>{modulePerms.filter(p => selected.includes(p)).length}/{modulePerms.length}</span>
                     {/* module checkbox */}
@@ -312,7 +309,7 @@ function RoleModal({ editRole, allPermissions, onClose, onSaved }) {
           </div>
         </div>
 
-        <ModalFooter onCancel={onClose} onSave={save} saving={saving} saveLabel={isEdit ? "💾 Update Role" : "✅ Create Role"} />
+        <ModalFooter onCancel={onClose} onSave={save} saving={saving} saveLabel={isEdit ? "Update Role" : "Create Role"} />
       </ModalBox>
     </ModalOverlay>
   );
@@ -396,23 +393,23 @@ export default function UserRoleManagement() {
         {/* ── Page title card ── */}
         <Row className="mb-4">
           <Col>
-            <Card className="shadow border-0" style={{ borderRadius: 16 }}>
-              <CardBody style={{ padding: "1.25rem 1.5rem" }}>
-                <div className="d-flex align-items-center justify-content-between flex-wrap" style={{ gap: 14 }}>
-                  <div className="d-flex align-items-center" style={{ gap: 12 }}>
-                    <span style={{ width: 48, height: 48, borderRadius: 13, background: "linear-gradient(135deg,#5e72e4,#825ee4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, boxShadow: "0 4px 14px rgba(94,114,228,.35)", flexShrink: 0 }}>🛡️</span>
-                    <div>
-                      <h3 className="mb-0" style={{ fontWeight: 800, color: "#32325d" }}>Users & Roles</h3>
-                      <p className="mb-0" style={{ fontSize: 12, color: "#8898aa" }}>Manage system access, users and role permissions</p>
-                    </div>
-                  </div>
-                  <div className="d-flex" style={{ gap: 8 }}>
-                    <TabBtn icon="👤" label="Users" active={tab === "users"} count={users.length}  onClick={() => setTab("users")} />
-                    <TabBtn icon="🛡️" label="Roles" active={tab === "roles"} count={roles.length}  onClick={() => setTab("roles")} />
+            <PageToolbarCard>
+              <div className="lims-page-toolbar">
+                <div className="d-flex align-items-center" style={{ gap: 12 }}>
+                  <span className="lims-page-icon" style={{ background: T.gradient.primary }}>
+                    <i className="fa-solid fa-users-gear text-white" />
+                  </span>
+                  <div>
+                    <h3 className="mb-0 lims-page-title">Users & Roles</h3>
+                    <p className="mb-0 lims-page-subtitle">Manage system access, users and role permissions</p>
                   </div>
                 </div>
-              </CardBody>
-            </Card>
+                <div className="d-flex flex-wrap" style={{ gap: 8 }}>
+                  <TabBtn icon="fa-solid fa-users" label="Users" active={tab === "users"} count={users.length} onClick={() => setTab("users")} />
+                  <TabBtn icon="fa-solid fa-shield-halved" label="Roles" active={tab === "roles"} count={roles.length} onClick={() => setTab("roles")} />
+                </div>
+              </div>
+            </PageToolbarCard>
           </Col>
         </Row>
 
@@ -420,8 +417,8 @@ export default function UserRoleManagement() {
         {tab === "users" && (
           <Row>
             <Col>
-              <Card className="shadow border-0" style={{ borderRadius: 16, overflow: "hidden" }}>
-                <CardHeader className="bg-white border-0" style={{ padding: "1.1rem 1.5rem", borderBottom: "1px solid #f0f0f0" }}>
+              <Card className="lims-page-card shadow border-0">
+                <CardHeader className="  border-0" style={{ padding: "1.1rem 1.5rem", borderBottom: "1px solid #f0f0f0" }}>
                   <div className="d-flex align-items-center justify-content-between flex-wrap" style={{ gap: 12 }}>
                     <div className="d-flex align-items-center" style={{ gap: 8 }}>
                       <span style={{ fontWeight: 700, color: "#32325d", fontSize: 15 }}>All Users</span>
@@ -431,7 +428,7 @@ export default function UserRoleManagement() {
                     <div className="d-flex align-items-center flex-wrap" style={{ gap: 8 }}>
                       {/* search */}
                       <div style={{ position: "relative" }}>
-                        <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "#adb5bd", fontSize: 13, pointerEvents: "none" }}>🔍</span>
+                        {/* <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "#adb5bd", fontSize: 13, pointerEvents: "none" }}>🔍</span> */}
                         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search users…"
                           style={{ ...iS, paddingLeft: 30, width: 200, padding: "7px 12px 7px 28px" }} onFocus={iFocus} onBlur={iBlur} />
                       </div>
@@ -444,8 +441,8 @@ export default function UserRoleManagement() {
                       </select>
 
                       {/* add user */}
-                      <button onClick={openAddUser} style={{ borderRadius: 8, border: "none", fontWeight: 600, fontSize: 13, padding: "8px 18px", cursor: "pointer", background: "linear-gradient(135deg,#2dce89,#2dcecc)", color: "#fff", boxShadow: "0 4px 12px rgba(45,206,137,.3)", whiteSpace: "nowrap" }}>
-                        + Add User
+                      <button type="button" onClick={openAddUser} style={{ ...btnPrimary, background: "linear-gradient(135deg,#059669,#10b981)", whiteSpace: "nowrap" }}>
+                        <i className="fa-solid fa-plus" /> Add User
                       </button>
                     </div>
                   </div>
@@ -458,7 +455,7 @@ export default function UserRoleManagement() {
                     </div>
                   ) : users.length === 0 ? (
                     <div style={{ textAlign: "center", padding: "48px 0", color: "#adb5bd" }}>
-                      <div style={{ fontSize: 36, marginBottom: 8 }}>👤</div>
+                      <div style={{ fontSize: 36, marginBottom: 8 }}><i className="fa-solid fa-users-slash"></i></div>
                       <div style={{ fontWeight: 600 }}>No users found</div>
                       {search && <div style={{ fontSize: 12, marginTop: 4 }}>Try a different search term</div>}
                     </div>
@@ -496,8 +493,8 @@ export default function UserRoleManagement() {
                               <td style={{ padding: "12px 16px", fontSize: 12, color: "#8898aa" }}>{u.created_at || "—"}</td>
                               <td style={{ padding: "12px 16px" }}>
                                 <div className="d-flex" style={{ gap: 6 }}>
-                                  <button onClick={() => openEditUser(u)} style={{ borderRadius: 7, border: "1px solid #e0e6ed", background: "#f8f9fe", color: "#525f7f", padding: "5px 12px", cursor: "pointer", fontSize: 12, fontWeight: 600 }}>✏️ Edit</button>
-                                  <button onClick={() => { setDelTarget({ type: "user", id: u.id }); setWarnOpen(true); }} style={{ borderRadius: 7, border: "1px solid #fcc", background: "#fff0f3", color: "#f5365c", padding: "5px 10px", cursor: "pointer", fontSize: 12 }}>🗑</button>
+                                  <button onClick={() => openEditUser(u)} style={{ borderRadius: 7, border: "1px solid #e0e6ed", background: "#f8f9fe", color: "#525f7f", padding: "5px 12px", cursor: "pointer", fontSize: 12, fontWeight: 600 }}><i className="fa-solid fa-pencil"></i></button>
+                                  <button onClick={() => { setDelTarget({ type: "user", id: u.id }); setWarnOpen(true); }} style={{ borderRadius: 7, border: "1px solid #fcc", background: "#fff0f3", color: "#f5365c", padding: "5px 10px", cursor: "pointer", fontSize: 12 }}><i className="fa-solid fa-trash"></i></button>
                                 </div>
                               </td>
                             </tr>
@@ -516,8 +513,8 @@ export default function UserRoleManagement() {
         {tab === "roles" && (
           <Row>
             <Col>
-              <Card className="shadow border-0" style={{ borderRadius: 16, overflow: "hidden" }}>
-                <CardHeader className="bg-white border-0" style={{ padding: "1.1rem 1.5rem", borderBottom: "1px solid #f0f0f0" }}>
+              <Card className="lims-page-card shadow border-0">
+                <CardHeader className="  border-0" style={{ padding: "1.1rem 1.5rem", borderBottom: "1px solid #f0f0f0" }}>
                   <div className="d-flex align-items-center justify-content-between">
                     <div className="d-flex align-items-center" style={{ gap: 8 }}>
                       <span style={{ fontWeight: 700, color: "#32325d", fontSize: 15 }}>All Roles</span>
@@ -549,16 +546,16 @@ export default function UserRoleManagement() {
                                 {/* role header */}
                                 <div className="d-flex align-items-center justify-content-between mb-3">
                                   <div className="d-flex align-items-center" style={{ gap: 10 }}>
-                                    <div style={{ width: 36, height: 36, borderRadius: 10, background: rs.bg, border: `1px solid ${rs.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>🛡️</div>
+                                    <div style={{ width: 36, height: 36, borderRadius: 10, background: rs.bg, border: `1px solid ${rs.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}><i className="fa-solid fa-shield-alt"></i></div>
                                     <div>
                                       <div style={{ fontWeight: 700, color: "#32325d", fontSize: 14, textTransform: "capitalize" }}>{role.name}</div>
                                       <div style={{ fontSize: 11, color: "#8898aa" }}>{role.users_count} user{role.users_count !== 1 ? "s" : ""} · {(role.permissions || []).length} permissions</div>
                                     </div>
                                   </div>
                                   <div className="d-flex" style={{ gap: 6 }}>
-                                    <button onClick={() => openEditRole(role)} style={{ borderRadius: 7, border: "1px solid #e0e6ed", background: "#f8f9fe", color: "#525f7f", padding: "5px 10px", cursor: "pointer", fontSize: 12 }}>✏️</button>
+                                    <button onClick={() => openEditRole(role)} style={{ borderRadius: 7, border: "1px solid #e0e6ed", background: "#f8f9fe", color: "#525f7f", padding: "5px 10px", cursor: "pointer", fontSize: 12 }}><i className="fa-solid fa-pencil"></i></button>
                                     {role.name !== "admin" && (
-                                      <button onClick={() => { setDelTarget({ type: "role", id: role.id }); setWarnOpen(true); }} style={{ borderRadius: 7, border: "1px solid #fcc", background: "#fff0f3", color: "#f5365c", padding: "5px 8px", cursor: "pointer", fontSize: 12 }}>🗑</button>
+                                      <button onClick={() => { setDelTarget({ type: "role", id: role.id }); setWarnOpen(true); }} style={{ borderRadius: 7, border: "1px solid #fcc", background: "#fff0f3", color: "#f5365c", padding: "5px 8px", cursor: "pointer", fontSize: 12 }}><i className="fa-solid fa-trash"></i></button>
                                     )}
                                   </div>
                                 </div>
@@ -599,23 +596,21 @@ export default function UserRoleManagement() {
       </Container>
 
       {/* ── Modals ── */}
-      {userModal && (
-        <UserModal
-          editUser={editUser}
-          roles={roles}
-          onClose={() => setUserModal(false)}
-          onSaved={fetchUsers}
-        />
-      )}
+      <UserFormModal
+        open={userModal}
+        editUser={editUser}
+        roles={roles}
+        onClose={() => { setUserModal(false); setEditUser(null); }}
+        onSaved={fetchUsers}
+      />
 
-      {roleModal && (
-        <RoleModal
-          editRole={editRole}
-          allPermissions={permissions}
-          onClose={() => setRoleModal(false)}
-          onSaved={fetchRoles}
-        />
-      )}
+      <RoleFormModal
+        open={roleModal}
+        editRole={editRole}
+        allPermissions={permissions}
+        onClose={() => { setRoleModal(false); setEditRole(null); }}
+        onSaved={fetchRoles}
+      />
 
       <ErrorDialoge
         open={warnOpen}

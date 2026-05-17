@@ -3,31 +3,24 @@ import ThermalReceipt from "components/ThermalReceipt";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useReactToPrint } from "react-to-print";
-import { toast } from "react-toastify";
+import { toast } from "utils/toast";
 import { Card, CardBody, CardHeader, Col, Container, Row } from "reactstrap";
-
-/* ── shared input style ── */
-const iS = {
-  borderRadius: 8, border: "1px solid #e0e6ed",
-  padding: "9px 13px", fontSize: 14, color: "#32325d",
-  background: "#fff", width: "100%", outline: "none",
-  transition: "border .15s, box-shadow .15s",
-};
-const iErr = { border: "1px solid #f5365c" };
-const onFocus = (e) => {
-  e.target.style.border = "1px solid #5e72e4";
-  e.target.style.boxShadow = "0 0 0 3px rgba(94,114,228,.1)";
-};
-const onBlur = (e) => {
-  e.target.style.border = "1px solid #e0e6ed";
-  e.target.style.boxShadow = "none";
-};
+import T from "theme/tokens";
+import {
+  inputStyle as iS,
+  inputErrorStyle as iErr,
+  onInputFocus as onFocus,
+  onInputBlur as onBlur,
+  labelStyle,
+  btnPrimary,
+  btnSecondary,
+} from "theme/formStyles";
 
 /* ── field wrapper ── */
 const Field = ({ label, required, error, half, quarter, children }) => (
   <Col md={quarter ? 3 : half ? 6 : 12} className="mb-3">
-    <label style={{ fontSize: 13, fontWeight: 600, color: "#525f7f", marginBottom: 5, display: "block" }}>
-      {label} {required && <span style={{ color: "#f5365c" }}>*</span>}
+    <label style={labelStyle}>
+      {label} {required && <span style={{ color: T.colors.danger }}>*</span>}
     </label>
     {children}
     {error && (
@@ -40,13 +33,11 @@ const Field = ({ label, required, error, half, quarter, children }) => (
 
 /* ── section label ── */
 const SectionLabel = ({ icon, title }) => (
-  <div className="d-flex align-items-center mb-3 mt-2" style={{ gap: 8 }}>
-    <span style={{
-      width: 26, height: 26, borderRadius: 7,
-      background: "linear-gradient(135deg,#5e72e4,#825ee4)",
-      display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12,
-    }}><i className={icon}></i></span>
-    <h6 className="mb-0 text-muted" style={{ letterSpacing: 1, fontSize: 11 }}>{title}</h6>
+  <div className="lims-section-label">
+    <span className="lims-section-icon" style={{ background: T.gradient.primary }}>
+      <i className={icon} />
+    </span>
+    <h6 className="lims-section-title">{title}</h6>
   </div>
 );
 
@@ -56,6 +47,7 @@ export default function AddPatient() {
   const {
     register,
     handleSubmit,
+    reset,
     setValue,
     formState: { errors, isSubmitting },
   } = useForm({ mode: "onChange" });
@@ -134,6 +126,26 @@ export default function AddPatient() {
           t.test_name.toLowerCase().includes(debouncedSearch.toLowerCase())
         );
 
+        const handleGenerate = () => {
+          const now = new Date();
+
+          const timePart =
+            now.getFullYear().toString().slice(-2) +
+            String(now.getMonth() + 1).padStart(2, "0") +
+            String(now.getDate()).padStart(2, "0") +
+            String(now.getHours()).padStart(2, "0") +
+            String(now.getMinutes()).padStart(2, "0") +
+            String(now.getSeconds()).padStart(2, "0");
+
+          const random = Math.floor(Math.random() * 1000)
+            .toString()
+            .padStart(3, "0");
+
+          const bookingNo = `BK-${timePart}-${random}`;
+
+          setValue("booking_no", bookingNo);
+        };
+
   const addTest = (test) => {
     if (!selectedTests.find((t) => t.id === test.id)) {
       setSelectedTests((prev) => [...prev, test]);
@@ -169,7 +181,15 @@ export default function AddPatient() {
         net_bill: netBill,
       };
       setSavedPatient(patientData);
+
+      reset();
+      setSelectedTests([]);
+      setTestError("");
+      handleGenerate();
+
       toast.success("Patient saved successfully!");
+      
+
     } catch (err) {
       console.error(err);
       toast.error("Failed to save patient. Please try again.");
@@ -186,37 +206,20 @@ export default function AddPatient() {
 
           {/* ══════════ LEFT — FORM ══════════ */}
           <Col xl="8" className="mb-4">
-            <Card className="shadow border-0" style={{ borderRadius: 16, overflow: "hidden" }}>
-              <CardHeader
-                className="bg-white border-0"
-                style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid #f0f0f0" }}
-              >
-                <div className="d-flex align-items-center justify-content-between flex-wrap" style={{ gap: 12 }}>
-                  <div className="d-flex align-items-center" style={{ gap: 10 }}>
-                    <span style={{
-                      width: 40, height: 40, borderRadius: 10,
-                      background: "linear-gradient(135deg,#11cdef,#1171ef)",
-                      display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18,
-                    }}><i class="fa-solid fa-bed text-white"></i></span>
+            <Card className="lims-page-card shadow border-0">
+              <CardHeader className="lims-page-card-header border-0">
+                <div className="lims-page-toolbar">
+                  <div className="d-flex align-items-center" style={{ gap: 12 }}>
+                    <span className="lims-page-icon" style={{ background: T.gradient.primary }}>
+                      <i className="fa-solid fa-user-plus text-white" />
+                    </span>
                     <div>
-                      <h3 className="mb-0" style={{ fontWeight: 700, color: "#32325d" }}>
-                        Patient Entry
-                      </h3>
-                      <p className="mb-0" style={{ fontSize: 12, color: "#8898aa" }}>
-                        Register a new patient and assign tests
-                      </p>
+                      <h3 className="mb-0 lims-page-title">Patient Entry</h3>
+                      <p className="mb-0 lims-page-subtitle">Register a new patient and assign tests</p>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    style={{
-                      borderRadius: 8, fontWeight: 600, fontSize: 13,
-                      background: "#f8f9fe", border: "1px solid #e0e6ed",
-                      color: "#525f7f", padding: "7px 16px", cursor: "pointer",
-                    }}
-                    onClick={() => window.history.back()}
-                  >
-                    ← Back
+                  <button type="button" style={btnSecondary} onClick={() => window.history.back()}>
+                    <i className="fa-solid fa-arrow-left" /> Back
                   </button>
                 </div>
               </CardHeader>
@@ -227,14 +230,30 @@ export default function AddPatient() {
                   {/* ─ Patient Info ─ */}
                   <SectionLabel icon="fa-solid fa-user-injured text-white" title="PATIENT INFORMATION" />
                   <Row>
-                    <Field label="Booking No" half error={errors.booking_no?.message}>
+                  <Field label="Booking No" half error={errors.booking_no?.message}>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      
                       <input
                         style={errors.booking_no ? { ...iS, ...iErr } : iS}
                         placeholder="e.g. BK-0001"
-                        onFocus={onFocus} onBlur={onBlur}
-                        {...register("booking_no", { required: "Booking number is required" })}
+                        onFocus={onFocus}
+                        onBlur={onBlur}
+                        {...register("booking_no", {
+                          required: "Booking number is required"
+                        })}
                       />
-                    </Field>
+
+                      <button type="button" onClick={handleGenerate} style={{
+                        borderRadius: 8, fontWeight: 600, fontSize: 13,
+                        background: "#f8f9fe", border: "1px solid #e0e6ed",
+                        color: "#525f7f", padding: "7px 16px", cursor: "pointer",
+                      }}
+                      >
+                        <i className="fa-solid fa-rotate text-sm"></i> 
+                      </button>
+
+                    </div>
+                  </Field>
 
                     <Field label="Patient Name" required half error={errors.patient_name?.message}>
                       <input
@@ -276,12 +295,26 @@ export default function AddPatient() {
 
                     <Field label="Mobile" required quarter error={errors.mobile?.message}>
                       <input
+                        type="tel"
                         style={errors.mobile ? { ...iS, ...iErr } : iS}
-                        placeholder="0300-0000000"
-                        onFocus={onFocus} onBlur={onBlur}
+                        placeholder="0300 0000000"
+                        onFocus={onFocus}
+                        onBlur={onBlur}
                         {...register("mobile", {
                           required: "Mobile is required",
-                          pattern: { value: /^[0-9\-+\s]{7,15}$/, message: "Invalid mobile number" },
+                          pattern: {
+                            value: /^03\d{2}\s\d{7}$/,
+                            message: "Format should be 0300 0000000",
+                          },
+                          onChange: (e) => {
+                            let value = e.target.value.replace(/\D/g, "");
+
+                            if (value.length > 4) {
+                              value = value.slice(0, 4) + " " + value.slice(4, 11);
+                            }
+
+                            e.target.value = value;
+                          }
                         })}
                       />
                     </Field>
@@ -356,7 +389,7 @@ export default function AddPatient() {
                         }}>
                           {searchTest !== debouncedSearch && (
                             <div style={{ padding: "10px 14px", color: "#8898aa", fontSize: 13 }}>
-                              🔍 Searching…
+                              <i className="fa-solid fa-spinner fa-spin"></i> Searching…
                             </div>
                           )}
                           {debouncedSearch.trim() !== "" && filteredTests.length === 0 && (
@@ -448,13 +481,10 @@ export default function AddPatient() {
                       type="submit"
                       disabled={isSubmitting}
                       style={{
-                        borderRadius: 8, fontWeight: 600, fontSize: 14,
-                        padding: "10px 32px", border: "none",
-                        background: "linear-gradient(135deg,#11cdef,#1171ef)",
-                        color: "#fff", cursor: isSubmitting ? "not-allowed" : "pointer",
-                        boxShadow: "0 4px 12px rgba(17,193,239,.35)",
+                        ...btnPrimary,
+                        padding: "10px 32px",
+                        cursor: isSubmitting ? "not-allowed" : "pointer",
                         opacity: isSubmitting ? 0.7 : 1,
-                        display: "flex", alignItems: "center", gap: 8,
                       }}
                     >
                       {isSubmitting ? (
@@ -485,9 +515,9 @@ export default function AddPatient() {
           <Col xl="4">
 
             {/* Selected Tests */}
-            <Card className="shadow border-0 mb-4" style={{ borderRadius: 16, overflow: "hidden" }}>
+            <Card className="lims-page-card shadow border-0 mb-4">
               <CardHeader
-                className="bg-white border-0"
+                className="  border-0"
                 style={{ padding: "1rem 1.25rem", borderBottom: "1px solid #f0f0f0" }}
               >
                 <div className="d-flex align-items-center justify-content-between">
@@ -561,7 +591,7 @@ export default function AddPatient() {
             {/* Bill Summary */}
             <Card className="shadow border-0" style={{ borderRadius: 16, overflow: "hidden" }}>
               <CardHeader
-                className="bg-white border-0"
+                className="  border-0"
                 style={{ padding: "1rem 1.25rem", borderBottom: "1px solid #f0f0f0" }}
               >
                 <div className="d-flex align-items-center" style={{ gap: 8 }}>

@@ -1,526 +1,159 @@
-// src/components/AppTable.jsx
-import React, { useState, useMemo, useRef, useEffect } from "react";
-import { DataGrid } from "@mui/x-data-grid";
-import { Menu, MenuItem, IconButton, Chip, Tooltip, Popover, Divider } from "@mui/material";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
-import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
-import FilterListIcon from "@mui/icons-material/FilterList";
-import SearchIcon from "@mui/icons-material/Search";
-import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
-import CloseIcon from "@mui/icons-material/Close";
-import TuneIcon from "@mui/icons-material/Tune";
-import "assets/scss/custom-datagrid.scss";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 
-// ─── Date helpers ───────────────────────────────────────────────────────────
 const startOfDay = (d) => { const x = new Date(d); x.setHours(0,0,0,0); return x; };
 const endOfDay   = (d) => { const x = new Date(d); x.setHours(23,59,59,999); return x; };
 
 const DATE_PRESETS = [
-  { label: "Today",        getValue: () => { const n=new Date(); return { from: startOfDay(n), to: endOfDay(n) }; } },
-  { label: "Yesterday",    getValue: () => { const n=new Date(); n.setDate(n.getDate()-1); return { from: startOfDay(n), to: endOfDay(n) }; } },
-  { label: "This Week",    getValue: () => { const n=new Date(); const day=n.getDay(); const mon=new Date(n); mon.setDate(n.getDate()-day+1); return { from: startOfDay(mon), to: endOfDay(n) }; } },
-  { label: "Last Week",    getValue: () => { const n=new Date(); const day=n.getDay(); const lm=new Date(n); lm.setDate(n.getDate()-day-6); const ls=new Date(n); ls.setDate(n.getDate()-day); return { from: startOfDay(lm), to: endOfDay(ls) }; } },
-  { label: "This Month",   getValue: () => { const n=new Date(); return { from: new Date(n.getFullYear(),n.getMonth(),1), to: endOfDay(n) }; } },
-  { label: "Last Month",   getValue: () => { const n=new Date(); const f=new Date(n.getFullYear(),n.getMonth()-1,1); const t=new Date(n.getFullYear(),n.getMonth(),0); return { from: f, to: endOfDay(t) }; } },
-  { label: "This Quarter", getValue: () => { const n=new Date(); const q=Math.floor(n.getMonth()/3); const f=new Date(n.getFullYear(),q*3,1); return { from: f, to: endOfDay(n) }; } },
-  { label: "This Year",    getValue: () => { const n=new Date(); return { from: new Date(n.getFullYear(),0,1), to: endOfDay(n) }; } },
-  { label: "Last Year",    getValue: () => { const n=new Date(); return { from: new Date(n.getFullYear()-1,0,1), to: new Date(n.getFullYear()-1,11,31,23,59,59) }; } },
+  { label: "Today",        getValue: () => { const n = new Date(); return { from: startOfDay(n), to: endOfDay(n) }; } },
+  { label: "Yesterday",    getValue: () => { const n = new Date(); n.setDate(n.getDate() - 1); return { from: startOfDay(n), to: endOfDay(n) }; } },
+  { label: "This Week",    getValue: () => { const n = new Date(); const d = n.getDay(); const m = new Date(n); m.setDate(n.getDate() - d + 1); return { from: startOfDay(m), to: endOfDay(n) }; } },
+  { label: "Last Week",    getValue: () => { const n = new Date(); const d = n.getDay(); const start = new Date(n); start.setDate(n.getDate() - d - 6); const end = new Date(n); end.setDate(n.getDate() - d); return { from: startOfDay(start), to: endOfDay(end) }; } },
+  { label: "This Month",   getValue: () => { const n = new Date(); return { from: new Date(n.getFullYear(), n.getMonth(), 1), to: endOfDay(n) }; } },
+  { label: "Last Month",   getValue: () => { const n = new Date(); const first = new Date(n.getFullYear(), n.getMonth() - 1, 1); const last = new Date(n.getFullYear(), n.getMonth(), 0); return { from: first, to: endOfDay(last) }; } },
+  { label: "This Quarter", getValue: () => { const n = new Date(); const q = Math.floor(n.getMonth() / 3); return { from: new Date(n.getFullYear(), q * 3, 1), to: endOfDay(n) }; } },
+  { label: "This Year",    getValue: () => { const n = new Date(); return { from: new Date(n.getFullYear(), 0, 1), to: endOfDay(n) }; } },
+  { label: "Last Year",    getValue: () => { const n = new Date(); return { from: new Date(n.getFullYear() - 1, 0, 1), to: new Date(n.getFullYear() - 1, 11, 31, 23, 59, 59) }; } },
 ];
 
-const fmtDate = (d) => d ? new Date(d).toISOString().slice(0,10) : "";
+const fmtDate = (d) => d ? new Date(d).toISOString().slice(0, 10) : "";
 const parseDate = (s) => s ? new Date(s) : null;
+const toISOOrNull = (d) => d ? new Date(d).toISOString() : null;
 
-// ─── Column Filter Popover ───────────────────────────────────────────────────
-function ColumnFilterPopover({ columns, filters, onChange, onClose, anchorEl }) {
-  const open = Boolean(anchorEl);
-  return (
-    <Popover
-      open={open}
-      anchorEl={anchorEl}
-      onClose={onClose}
-      anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-      transformOrigin={{ vertical: "top", horizontal: "left" }}
-      PaperProps={{ style: { width: 320, maxHeight: 480, padding: "16px", borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.15)" } }}
-    >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-        <span style={{ fontWeight: 700, fontSize: 14, color: "#1a1a2e" }}>Filter by Column</span>
-        <IconButton size="small" onClick={onClose}><CloseIcon fontSize="small" /></IconButton>
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {columns.filter(c => c.field !== "actions" && c.filterable !== false).map((col) => (
-          <div key={col.field}>
-            <label style={{ fontSize: 11, fontWeight: 600, color: "#666", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-              {col.headerName || col.field}
-            </label>
-            <input
-              type="text"
-              placeholder={`Search ${col.headerName || col.field}...`}
-              value={filters[col.field] || ""}
-              onChange={(e) => onChange(col.field, e.target.value)}
-              style={{
-                width: "100%", marginTop: 4, padding: "7px 10px",
-                border: "1.5px solid #e0e0e0", borderRadius: 8, fontSize: 13,
-                outline: "none", boxSizing: "border-box",
-                transition: "border-color 0.2s",
-              }}
-              onFocus={e => e.target.style.borderColor = "#4f46e5"}
-              onBlur={e => e.target.style.borderColor = "#e0e0e0"}
-            />
-          </div>
-        ))}
-      </div>
-      <button
-        onClick={() => onChange("__clear__", "")}
-        style={{
-          marginTop: 16, width: "100%", padding: "8px", background: "#f5f5f5",
-          border: "none", borderRadius: 8, cursor: "pointer", fontSize: 13,
-          fontWeight: 600, color: "#666", transition: "background 0.2s",
-        }}
-        onMouseEnter={e => e.target.style.background = "#ede9fe"}
-        onMouseLeave={e => e.target.style.background = "#f5f5f5"}
-      >
-        Clear All Filters
-      </button>
-    </Popover>
-  );
-}
-
-// ─── Date Filter Popover ─────────────────────────────────────────────────────
-function DateFilterPopover({ dateColumns, dateFilter, onChange, onClose, anchorEl }) {
-  const open = Boolean(anchorEl);
-  const [activePreset, setActivePreset] = useState(null);
-
-  const handlePreset = (preset) => {
-    setActivePreset(preset.label);
-    const range = preset.getValue();
-    onChange({ column: dateFilter.column, from: range.from, to: range.to });
-  };
-
-  return (
-    <Popover
-      open={open}
-      anchorEl={anchorEl}
-      onClose={onClose}
-      anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-      transformOrigin={{ vertical: "top", horizontal: "left" }}
-      PaperProps={{ style: { width: 360, padding: "16px", borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.15)" } }}
-    >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-        <span style={{ fontWeight: 700, fontSize: 14, color: "#1a1a2e" }}>Date Filter</span>
-        <IconButton size="small" onClick={onClose}><CloseIcon fontSize="small" /></IconButton>
-      </div>
-
-      {/* Date column selector */}
-      {dateColumns.length > 1 && (
-        <div style={{ marginBottom: 12 }}>
-          <label style={{ fontSize: 11, fontWeight: 600, color: "#666", textTransform: "uppercase", letterSpacing: "0.5px" }}>Date Column</label>
-          <select
-            value={dateFilter.column || ""}
-            onChange={(e) => onChange({ ...dateFilter, column: e.target.value })}
-            style={{ width: "100%", marginTop: 4, padding: "7px 10px", border: "1.5px solid #e0e0e0", borderRadius: 8, fontSize: 13, outline: "none", background: "#fff" }}
-          >
-            <option value="">Select a column…</option>
-            {dateColumns.map(c => <option key={c.field} value={c.field}>{c.headerName || c.field}</option>)}
-          </select>
-        </div>
-      )}
-
-      {/* Quick presets */}
-      <div style={{ marginBottom: 12 }}>
-        <label style={{ fontSize: 11, fontWeight: 600, color: "#666", textTransform: "uppercase", letterSpacing: "0.5px" }}>Quick Select</label>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6 }}>
-          {DATE_PRESETS.map(p => (
-            <button
-              key={p.label}
-              onClick={() => handlePreset(p)}
-              style={{
-                padding: "4px 10px", borderRadius: 20, border: "1.5px solid",
-                borderColor: activePreset === p.label ? "#4f46e5" : "#e0e0e0",
-                background: activePreset === p.label ? "#ede9fe" : "#fff",
-                color: activePreset === p.label ? "#4f46e5" : "#555",
-                fontSize: 12, fontWeight: 600, cursor: "pointer", transition: "all 0.15s",
-              }}
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <Divider style={{ margin: "12px 0" }} />
-
-      {/* Custom range */}
-      <label style={{ fontSize: 11, fontWeight: 600, color: "#666", textTransform: "uppercase", letterSpacing: "0.5px" }}>Custom Range</label>
-      <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
-        <div style={{ flex: 1 }}>
-          <label style={{ fontSize: 11, color: "#999" }}>From</label>
-          <input
-            type="date"
-            value={fmtDate(dateFilter.from)}
-            onChange={(e) => { setActivePreset(null); onChange({ ...dateFilter, from: parseDate(e.target.value) }); }}
-            style={{ width: "100%", marginTop: 2, padding: "7px 8px", border: "1.5px solid #e0e0e0", borderRadius: 8, fontSize: 13, outline: "none", boxSizing: "border-box" }}
-          />
-        </div>
-        <div style={{ flex: 1 }}>
-          <label style={{ fontSize: 11, color: "#999" }}>To</label>
-          <input
-            type="date"
-            value={fmtDate(dateFilter.to)}
-            onChange={(e) => { setActivePreset(null); onChange({ ...dateFilter, to: endOfDay(parseDate(e.target.value)) }); }}
-            style={{ width: "100%", marginTop: 2, padding: "7px 8px", border: "1.5px solid #e0e0e0", borderRadius: 8, fontSize: 13, outline: "none", boxSizing: "border-box" }}
-          />
-        </div>
-      </div>
-
-      <button
-        onClick={() => { setActivePreset(null); onChange({ column: dateFilter.column, from: null, to: null }); }}
-        style={{
-          marginTop: 14, width: "100%", padding: "8px", background: "#f5f5f5",
-          border: "none", borderRadius: 8, cursor: "pointer", fontSize: 13,
-          fontWeight: 600, color: "#666",
-        }}
-      >
-        Clear Date Filter
-      </button>
-    </Popover>
-  );
-}
-
-// ─── Main Component ──────────────────────────────────────────────────────────
-export default function AppTable({
-  rows,
-  columns,
-  loading = false,
-  rowCount,
-  onPageChange,
-  onPageSizeChange,
-  searchValue = "",
-  onSearchChange,
-  actions,
-  defaultPageSize = 10,
-  setWarn,
-  addPath,
-  // NEW: pass field names of date columns for auto-detection override
-  dateColumnFields,
-}) {
-  const [pageSize, setPageSize] = useState(defaultPageSize);
-  const [page, setPage] = useState(1);
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [currentRow, setCurrentRow] = useState(null);
-
-  // Advanced search state
-  const [globalSearch, setGlobalSearch] = useState(searchValue);
-  const [columnFilters, setColumnFilters] = useState({});
-  const [dateFilter, setDateFilter] = useState({ column: "", from: null, to: null });
-
-  // Popover anchors
-  const [colFilterAnchor, setColFilterAnchor] = useState(null);
-  const [dateFilterAnchor, setDateFilterAnchor] = useState(null);
-
-  // Detect date columns automatically (or use provided list)
-  const dateColumns = useMemo(() => {
-    if (dateColumnFields) return columns.filter(c => dateColumnFields.includes(c.field));
-    // Auto-detect: field name contains "date", "time", "at", "on", "created", "updated"
-    const dateKeywords = /date|time|_at|_on|created|updated|timestamp/i;
-    const detected = columns.filter(c => dateKeywords.test(c.field));
-    // Also sniff first non-empty row value
-    if (detected.length === 0 && rows.length > 0) {
-      return columns.filter(c => {
-        const val = rows[0][c.field];
-        return val && !isNaN(Date.parse(val)) && isNaN(Number(val));
-      });
-    }
-    return detected;
-  }, [columns, dateColumnFields, rows]);
-
-  // Auto-select first date column
+function useDebounce(value, delay = 400) {
+  const [debounced, setDebounced] = useState(value);
   useEffect(() => {
-    if (dateColumns.length === 1 && !dateFilter.column) {
-      setDateFilter(f => ({ ...f, column: dateColumns[0].field }));
-    }
-  }, [dateColumns]);
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debounced;
+}
 
-  // Sync external searchValue
-  useEffect(() => { setGlobalSearch(searchValue); }, [searchValue]);
+const toolbarButton = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 8,
+  borderRadius: 10,
+  border: "1px solid var(--lims-border, #e2e8f0)",
+  background: "var(--lims-surface, #fff)",
+  color: "var(--lims-text, #1e293b)",
+  padding: "9px 14px",
+  fontSize: 13,
+  fontWeight: 600,
+  cursor: "pointer",
+  transition: "all .18s ease",
+};
 
-  // Count active filters
-  const activeColFilters = Object.values(columnFilters).filter(Boolean).length;
-  const activeDateFilter = dateFilter.from || dateFilter.to ? 1 : 0;
-  const totalActive = activeColFilters + activeDateFilter;
+const pillBtn = { ...toolbarButton, minWidth: 110, borderRadius: 999 };
+const chipStyle = { display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 12px", borderRadius: 999, background: "#f3f4f6", color: "#334155", fontSize: 12 };
+const chipCloseButtonStyle = { border: "none", background: "transparent", color: "#475569", cursor: "pointer", fontSize: 12, padding: 0, lineHeight: 1 };
+const filterInputStyle = { width: "100%", marginTop: 6, padding: "10px 12px", border: "1.5px solid #e5e7eb", borderRadius: 10, outline: "none", fontSize: 13, color: "#111827", background: "#f8fafc", boxSizing: "border-box" };
+const tableHeaderCell = { textAlign: "left", padding: "12px 16px", fontSize: 12, fontWeight: 700, color: "var(--lims-text-secondary, #64748b)", borderBottom: "1px solid var(--lims-border, #e2e8f0)", cursor: "pointer", userSelect: "none", textTransform: "uppercase", letterSpacing: "0.04em" };
+const tableCell = { padding: "12px 16px", color: "var(--lims-text, #1e293b)", borderBottom: "1px solid #f1f5f9", verticalAlign: "middle", fontSize: 14 };
+const summaryStyle = { fontSize: 12, color: "#6b7280", marginBottom: 10 };
+const navButton = { border: "1px solid #d1d5db", background: "#fff", color: "#374151", padding: "9px 12px", borderRadius: 10, cursor: "pointer", fontSize: 13, transition: "background .18s" };
+const pageControlStyle = { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginTop: 16, flexWrap: "wrap" };
+const menuItemStyle = { border: "none", background: "transparent", width: "100%", padding: "10px 14px", textAlign: "left", fontSize: 13, color: "#111827", cursor: "pointer", borderRadius: 10 };
+const menuDangerStyle = { ...menuItemStyle, color: "#b91c1c" };
 
-  // ── Row menu ──
-  const handleClick = (event, row) => { setAnchorEl(event.currentTarget); setCurrentRow(row); };
-  const handleClose = () => { setAnchorEl(null); setCurrentRow(null); };
-
-  // ── Column filter handler ──
-  const handleColumnFilter = (field, value) => {
-    if (field === "__clear__") { setColumnFilters({}); return; }
-    setColumnFilters(prev => ({ ...prev, [field]: value }));
-  };
-
-  // ── Build columns with actions ──
-  const allColumns = [...columns];
-  if (actions) {
-    allColumns.push({
-      field: "actions",
-      headerName: "Actions",
-      sortable: false,
-      filterable: false,
-      flex: 1,
-      renderCell: (params) => (
-        <IconButton onClick={(e) => handleClick(e, params.row)} size="small">
-          <MoreVertIcon />
-        </IconButton>
-      ),
-    });
-  }
-
-  // ── Filter logic ──
-  const filteredRows = useMemo(() => {
-    return rows.filter((row) => {
-      // 1. Global search
-      if (globalSearch) {
-        const match = Object.values(row).some(val =>
-          String(val).toLowerCase().includes(globalSearch.toLowerCase())
-        );
-        if (!match) return false;
-      }
-
-      // 2. Per-column filters
-      for (const [field, val] of Object.entries(columnFilters)) {
-        if (!val) continue;
-        const cellVal = String(row[field] ?? "").toLowerCase();
-        if (!cellVal.includes(val.toLowerCase())) return false;
-      }
-
-      // 3. Date range filter
-      if ((dateFilter.from || dateFilter.to) && dateFilter.column) {
-        const rawVal = row[dateFilter.column];
-        if (!rawVal) return false;
-        const cellDate = new Date(rawVal);
-        if (isNaN(cellDate)) return false;
-        if (dateFilter.from && cellDate < dateFilter.from) return false;
-        if (dateFilter.to && cellDate > dateFilter.to) return false;
-      }
-
-      return true;
-    });
-  }, [rows, globalSearch, columnFilters, dateFilter]);
-
-  // ── Active filter chips ──
-  const renderChips = () => {
-    const chips = [];
-    if (globalSearch) chips.push(
-      <Chip key="global" size="small" label={`Search: "${globalSearch}"`}
-        onDelete={() => { setGlobalSearch(""); if (onSearchChange) onSearchChange(""); }}
-        style={chipStyle} />
-    );
-    Object.entries(columnFilters).filter(([,v]) => v).forEach(([field, val]) => {
-      const col = columns.find(c => c.field === field);
-      chips.push(
-        <Chip key={field} size="small"
-          label={`${col?.headerName || field}: "${val}"`}
-          onDelete={() => handleColumnFilter(field, "")}
-          style={chipStyle} />
-      );
-    });
-    if (activeDateFilter) {
-      const col = columns.find(c => c.field === dateFilter.column);
-      const fromStr = dateFilter.from ? dateFilter.from.toLocaleDateString() : "…";
-      const toStr   = dateFilter.to   ? dateFilter.to.toLocaleDateString()   : "…";
-      chips.push(
-        <Chip key="date" size="small"
-          label={`${col?.headerName || dateFilter.column}: ${fromStr} → ${toStr}`}
-          onDelete={() => setDateFilter(f => ({ ...f, from: null, to: null }))}
-          style={{ ...chipStyle, background: "#ede9fe", color: "#4f46e5", borderColor: "#c4b5fd" }} />
-      );
-    }
-    return chips;
-  };
-
+function FilterPanel({ visible, title, children, onClose }) {
+  if (!visible) return null;
   return (
-    <div>
-      {/* ── Toolbar ── */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
-
-        {/* Add New button */}
-        {addPath && (
-          <button className="btn btn-primary" onClick={() => (window.location.href = addPath)}>
-            Add New
-          </button>
-        )}
-
-        {/* Spacer */}
-        <div style={{ flex: 1 }} />
-
-        {/* Global search */}
-        <div style={{ position: "relative", width: 240 }}>
-          <SearchIcon style={{ position: "absolute", left: 8, top: "50%", transform: "translateY(-50%)", color: "#aaa", fontSize: 18 }} />
-          <input
-            type="text"
-            placeholder="Search all columns…"
-            value={globalSearch}
-            onChange={(e) => { setGlobalSearch(e.target.value); if (onSearchChange) onSearchChange(e.target.value); }}
-            style={{
-              width: "100%", padding: "8px 8px 8px 32px", boxSizing: "border-box",
-              border: "1.5px solid #e0e0e0", borderRadius: 8, fontSize: 13,
-              outline: "none", transition: "border-color 0.2s",
-            }}
-            onFocus={e => e.target.style.borderColor = "#4f46e5"}
-            onBlur={e => e.target.style.borderColor = "#e0e0e0"}
-          />
-          {globalSearch && (
-            <IconButton size="small" onClick={() => { setGlobalSearch(""); if (onSearchChange) onSearchChange(""); }}
-              style={{ position: "absolute", right: 2, top: "50%", transform: "translateY(-50%)" }}>
-              <CloseIcon fontSize="small" />
-            </IconButton>
-          )}
-        </div>
-
-        {/* Column filter button */}
-        <Tooltip title="Filter by column">
-          <button
-            onClick={(e) => setColFilterAnchor(e.currentTarget)}
-            style={{
-              ...toolbarBtn,
-              borderColor: activeColFilters ? "#4f46e5" : "#e0e0e0",
-              background: activeColFilters ? "#ede9fe" : "#fff",
-              color: activeColFilters ? "#4f46e5" : "#555",
-            }}
-          >
-            <TuneIcon style={{ fontSize: 16, marginRight: 4 }} />
-            Filters
-            {activeColFilters > 0 && (
-              <span style={{ marginLeft: 4, background: "#4f46e5", color: "#fff", borderRadius: 10, padding: "0 6px", fontSize: 11 }}>
-                {activeColFilters}
-              </span>
-            )}
-          </button>
-        </Tooltip>
-
-        {/* Date filter button */}
-        {dateColumns.length > 0 && (
-          <Tooltip title="Filter by date">
-            <button
-              onClick={(e) => setDateFilterAnchor(e.currentTarget)}
-              style={{
-                ...toolbarBtn,
-                borderColor: activeDateFilter ? "#4f46e5" : "#e0e0e0",
-                background: activeDateFilter ? "#ede9fe" : "#fff",
-                color: activeDateFilter ? "#4f46e5" : "#555",
-              }}
-            >
-              <CalendarTodayIcon style={{ fontSize: 15, marginRight: 4 }} />
-              Date
-              {activeDateFilter > 0 && (
-                <span style={{ marginLeft: 4, background: "#4f46e5", color: "#fff", borderRadius: 10, padding: "0 6px", fontSize: 11 }}>
-                  1
-                </span>
-              )}
-            </button>
-          </Tooltip>
-        )}
-
-        {/* Clear all */}
-        {totalActive > 0 && (
-          <Tooltip title="Clear all filters">
-            <IconButton size="small" onClick={() => { setGlobalSearch(""); setColumnFilters({}); setDateFilter(f => ({ ...f, from: null, to: null })); if (onSearchChange) onSearchChange(""); }}>
-              <CloseIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        )}
+    <div style={{ position: "absolute", right: 0, top: 52, width: 340, zIndex: 20, padding: 16, background: "#fff", borderRadius: 14, border: "1px solid rgba(15,23,42,.08)", boxShadow: "0 30px 60px rgba(15,23,42,.12)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+        <span style={{ fontSize: 14, fontWeight: 700, color: "#111827" }}>{title}</span>
+        <button onClick={onClose} style={{ border: "none", background: "transparent", color: "#6b7280", fontSize: 18, cursor: "pointer" }}>×</button>
       </div>
-
-      {/* ── Active filter chips ── */}
-      {totalActive > 0 && (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
-          {renderChips()}
-        </div>
-      )}
-
-      {/* ── Results count ── */}
-      <div style={{ fontSize: 12, color: "#888", marginBottom: 6 }}>
-        Showing <strong>{filteredRows.length}</strong> of <strong>{rows.length}</strong> records
-        {totalActive > 0 && " (filtered)"}
-      </div>
-
-      {/* ── DataGrid ── */}
-      <div style={{ height: 630, width: "100%" }}>
-        <DataGrid
-          rows={filteredRows}
-          columns={allColumns}
-          loading={loading}
-          pagination
-          paginationMode="server"
-          pageSizeOptions={[10, 25, 50, 100]}
-          paginationModel={{ page: page - 1, pageSize }}
-          rowCount={rowCount}
-          onPaginationModelChange={(model) => {
-            setPage(model.page + 1);
-            setPageSize(model.pageSize);
-            if (onPageChange) onPageChange(model.page + 1);
-            if (onPageSizeChange) onPageSizeChange(model.pageSize);
-          }}
-          getRowClassName={(params) =>
-            params.indexRelativeToCurrentPage % 2 === 0 ? "even-row" : "odd-row"
-          }
-          disableRowSelectionOnClick
-        />
-      </div>
-
-      {/* ── 3-dot action menu ── */}
-      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        transformOrigin={{ vertical: "top", horizontal: "right" }}>
-        {actions?.view && (
-          <MenuItem onClick={() => { actions.view(currentRow); handleClose(); }}>
-            <RemoveRedEyeIcon className="px-1" /> View
-          </MenuItem>
-        )}
-        {actions?.edit && (
-          <MenuItem onClick={() => { actions.edit(currentRow); handleClose(); }}>
-            <EditIcon className="px-1" /> Edit
-          </MenuItem>
-        )}
-        {actions?.delete && (
-          <MenuItem onClick={() => { actions.delete(currentRow); setWarn(true); handleClose(); }}>
-            <DeleteIcon className="px-1" /> Delete
-          </MenuItem>
-        )}
-      </Menu>
-
-      {/* ── Column Filter Popover ── */}
-      <ColumnFilterPopover
-        columns={columns}
-        filters={columnFilters}
-        onChange={handleColumnFilter}
-        onClose={() => setColFilterAnchor(null)}
-        anchorEl={colFilterAnchor}
-      />
-
-      {/* ── Date Filter Popover ── */}
-      <DateFilterPopover
-        dateColumns={dateColumns}
-        dateFilter={dateFilter}
-        onChange={setDateFilter}
-        onClose={() => setDateFilterAnchor(null)}
-        anchorEl={dateFilterAnchor}
-      />
+      {children}
     </div>
   );
 }
 
-// ─── Shared styles ───────────────────────────────────────────────────────────
-const toolbarBtn = {
-  display: "inline-flex", alignItems: "center", padding: "7px 12px",
-  border: "1.5px solid", borderRadius: 8, background: "#fff",
-  cursor: "pointer", fontSize: 13, fontWeight: 600,
-  transition: "all 0.15s", outline: "none",
-};
+export default function AppTable({ rows = [], columns = [], loading = false, rowCount = 0, defaultPageSize = 10, onFilterChange, actions, setWarn, addPath, dateColumnFields }) {
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(defaultPageSize);
+  const [sortModel, setSortModel] = useState([]);
+  const [globalSearch, setGlobalSearch] = useState("");
+  const [columnFilters, setColumnFilters] = useState({});
+  const [dateFilter, setDateFilter] = useState({ column: "", from: null, to: null });
+  const [searchFocused, setSearchFocused] = useState(false);
+  const [showColumnFilters, setShowColumnFilters] = useState(false);
+  const [showDateFilters, setShowDateFilters] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [menuRow, setMenuRow] = useState(null);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
 
-const chipStyle = {
-  background: "#f0f0f0", border: "1px solid #e0e0e0",
-  fontSize: 12, height: 26,
-};
+  const debouncedSearch = useDebounce(globalSearch, 300);
+  const debouncedFilters = useDebounce(columnFilters, 300);
+
+  const dateColumns = useMemo(() => {
+    if (dateColumnFields) return columns.filter((col) => dateColumnFields.includes(col.field));
+    const kw = /date|time|_at|_on|created|updated|timestamp/i;
+    const detected = columns.filter((col) => kw.test(col.field));
+    if (detected.length === 0 && rows.length > 0) return columns.filter((col) => { const value = rows[0][col.field]; return value && !isNaN(Date.parse(value)) && isNaN(Number(value)); });
+    return detected;
+  }, [columns, dateColumnFields, rows]);
+
+  useEffect(() => {
+    if (dateColumns.length === 1 && !dateFilter.column) setDateFilter((current) => ({ ...current, column: dateColumns[0].field }));
+  }, [dateColumns, dateFilter.column]);
+
+  const firstRender = useRef(true);
+  useEffect(() => { if (firstRender.current) { firstRender.current = false; return; } setPage(1); }, [debouncedSearch, debouncedFilters, dateFilter]);
+
+  useEffect(() => {
+    if (!onFilterChange) return;
+    onFilterChange({ page, page_size: pageSize, search: debouncedSearch || undefined, filters: debouncedFilters, date_column: dateFilter.column || undefined, date_from: toISOOrNull(dateFilter.from), date_to: toISOOrNull(dateFilter.to), sort_field: sortModel[0]?.field || undefined, sort_dir: sortModel[0]?.sort || undefined });
+  }, [page, pageSize, debouncedSearch, debouncedFilters, dateFilter, sortModel, onFilterChange]);
+
+  const activeColFilters = Object.values(columnFilters).filter(Boolean).length;
+  const activeDateFilter = dateFilter.from || dateFilter.to ? 1 : 0;
+  const totalActive = activeColFilters + activeDateFilter + (globalSearch ? 1 : 0);
+  const totalPages = Math.max(1, Math.ceil(rowCount / pageSize));
+
+  const openMenu = (event, row) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    setMenuPosition({ top: rect.bottom + window.scrollY + 8, left: rect.left + window.scrollX - 10 });
+    setMenuRow(row);
+    setMenuVisible(true);
+  };
+
+  const handleColumnFilter = (field, value) => {
+    if (field === "__clear__") { setColumnFilters({}); return; }
+    setColumnFilters((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSort = (field) => {
+    const current = sortModel[0];
+    if (current?.field !== field) { setSortModel([{ field, sort: "asc" }]); return; }
+    if (current.sort === "asc") { setSortModel([{ field, sort: "desc" }]); return; }
+    setSortModel([]);
+  };
+
+  return (
+    <div style={{ position: "relative" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+        {addPath && <button onClick={() => (window.location.href = addPath)} style={{ ...toolbarButton, background: "#4f46e5", borderColor: "#4f46e5", color: "#fff" }}>+ Add New</button>}
+        <div style={{ flex: 1, minWidth: 240, position: "relative" }}>
+          <i className="fa fa-search" style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: searchFocused ? "#4f46e5" : "#9ca3af" }} />
+          <input type="text" placeholder="Search…" value={globalSearch} onChange={(e) => setGlobalSearch(e.target.value)} onFocus={() => setSearchFocused(true)} onBlur={() => setSearchFocused(false)} style={{ width: "100%", height: 40, padding: "0 36px 0 40px", border: "1.5px solid" , borderRadius: 999, background: "#fff", outline: "none", fontSize: 13, color: "#111827", boxShadow: searchFocused ? "0 0 0 4px rgba(79,70,229,0.08)" : "none", transition: "border-color .18s, box-shadow .18s" }} />
+          {globalSearch && <button type="button" onClick={() => setGlobalSearch("")} style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", width: 24, height: 24, borderRadius: "50%", border: "none", background: "#e5e7eb", color: "#334155", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>×</button>}
+        </div>
+        <button type="button" onClick={() => setShowColumnFilters((value) => !value)} style={{ ...pillBtn, borderColor: activeColFilters ? "#4f46e5" : "#e0e0e0", background: activeColFilters ? "#eef2ff" : "#fff", color: activeColFilters ? "#4338ca" : "#374151" }}><i className="fa fa-filter" /> Filters {activeColFilters > 0 && <span style={{ marginLeft: 6, background: "#4f46e5", color: "#fff", borderRadius: 999, padding: "2px 8px", fontSize: 11 }}>{activeColFilters}</span>}</button>
+        {dateColumns.length > 0 && <button type="button" onClick={() => setShowDateFilters((value) => !value)} style={{ ...pillBtn, borderColor: activeDateFilter ? "#4f46e5" : "#e0e0e0", background: activeDateFilter ? "#eef2ff" : "#fff", color: activeDateFilter ? "#4338ca" : "#374151" }}><i className="fa fa-calendar-alt" /> Date {activeDateFilter > 0 && <span style={{ marginLeft: 6, background: "#4f46e5", color: "#fff", borderRadius: 999, padding: "2px 8px", fontSize: 11 }}>1</span>}</button>}
+        {totalActive > 0 && <button type="button" onClick={() => { setGlobalSearch(""); setColumnFilters({}); setDateFilter((current) => ({ ...current, from: null, to: null })); }} style={{ ...pillBtn, borderColor: "#e0e0e0", color: "#8b98ab" }}><i className="fa fa-times" /> Clear</button>}
+      </div>
+      {totalActive > 0 && <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>{globalSearch && <span style={chipStyle}>Search: "{globalSearch}" <button onClick={() => setGlobalSearch("")} style={chipCloseButtonStyle}>×</button></span>}{Object.entries(columnFilters).filter(([, value]) => value).map(([field, value]) => { const column = columns.find((col) => col.field === field); return <span key={field} style={chipStyle}>{column?.headerName || field}: "{value}" <button onClick={() => handleColumnFilter(field, "")} style={chipCloseButtonStyle}>×</button></span>; })}{activeDateFilter > 0 && <span style={{ ...chipStyle, background: "#eef2ff", color: "#4338ca", borderColor: "#c4b5fd" }}>{(columns.find((c) => c.field === dateFilter.column)?.headerName || dateFilter.column) || "Date"}: {dateFilter.from ? new Date(dateFilter.from).toLocaleDateString() : "…"} → {dateFilter.to ? new Date(dateFilter.to).toLocaleDateString() : "…"} <button onClick={() => setDateFilter((current) => ({ ...current, from: null, to: null }))} style={chipCloseButtonStyle}>×</button></span>}</div>}
+      <div style={summaryStyle}>Showing <strong>{rows.length}</strong> of <strong>{rowCount}</strong> records{totalActive > 0 && <span style={{ color: "#4f46e5" }}> (filtered)</span>}</div>
+      <div style={{ overflowX: "auto", borderRadius: 18, border: "1px solid #e5e7eb", background: "#fff" }}>
+        <table style={{ width: "100%", minWidth: 760, borderCollapse: "collapse" }}>
+          <thead style={{ background: "#f8fafc" }}><tr>{columns.map((col) => <th key={col.field} style={tableHeaderCell} onClick={() => col.sortable === false ? null : handleSort(col.field)}><span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>{col.headerName || col.field}{sortModel[0]?.field === col.field && <span style={{ fontSize: 12, color: "#4f46e5" }}>{sortModel[0]?.sort === "asc" ? "▲" : "▼"}</span>}</span></th>)}{actions && <th style={tableHeaderCell}>Actions</th>}</tr></thead>
+          <tbody>{loading ? <tr><td colSpan={columns.length + (actions ? 1 : 0)} style={{ ...tableCell, textAlign: "center", padding: 40 }}><div style={{ display: "inline-flex", alignItems: "center", gap: 10, color: "#4f46e5" }}><span className="spinner-border spinner-border-sm" /> Loading…</div></td></tr> : rows.length === 0 ? <tr><td colSpan={columns.length + (actions ? 1 : 0)} style={{ ...tableCell, textAlign: "center", padding: 40, color: "#6b7280" }}>No records found.</td></tr> : rows.map((row, rowIndex) => <tr key={row.id ?? rowIndex} style={{ background: rowIndex % 2 === 0 ? "#fff" : "#f8fafc" }}>{columns.map((col) => <td key={col.field} style={tableCell}>{col.renderCell ? col.renderCell({ row, value: row[col.field], field: col.field }) : (row[col.field] ?? "")}</td>)}{actions && <td style={tableCell}><button type="button" onClick={(e) => openMenu(e, row)} style={{ ...toolbarButton, minWidth: 36, width: 36, height: 36, justifyContent: "center", padding: 0 }}>⋮</button></td>}</tr>)}</tbody>
+        </table>
+      </div>
+      <div style={pageControlStyle}><div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}><button type="button" disabled={page === 1} onClick={() => setPage((value) => Math.max(1, value - 1))} style={{ ...navButton, opacity: page === 1 ? 0.5 : 1 }}>Previous</button><span style={{ color: "#374151", fontSize: 13 }}>Page {page} of {totalPages}</span><button type="button" disabled={page >= totalPages} onClick={() => setPage((value) => Math.min(totalPages, value + 1))} style={{ ...navButton, opacity: page >= totalPages ? 0.5 : 1 }}>Next</button></div><div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: "#6b7280", fontSize: 13 }}>Rows per page</span><select value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }} style={{ ...filterInputStyle, width: 96, padding: "8px 10px" }}>{[10, 25, 50, 100].map((size) => <option key={size} value={size}>{size}</option>)}</select></div></div>
+      <FilterPanel visible={showColumnFilters} title="Filter by column" onClose={() => setShowColumnFilters(false)}>{columns.filter((col) => col.field !== "actions" && col.filterable !== false).map((col) => <div key={col.field} style={{ marginBottom: 12 }}><label style={{ display: "block", marginBottom: 6, fontSize: 11, fontWeight: 700, color: "#475569", textTransform: "uppercase" }}>{col.headerName || col.field}</label><input type="text" value={columnFilters[col.field] || ""} onChange={(e) => handleColumnFilter(col.field, e.target.value)} style={filterInputStyle} /></div>)}<button type="button" onClick={() => handleColumnFilter("__clear__", "")} style={{ ...toolbarButton, width: "100%", marginTop: 10, background: "#f3f4f6", color: "#374151" }}>Clear All</button></FilterPanel>
+      <FilterPanel visible={showDateFilters} title="Date Filter" onClose={() => setShowDateFilters(false)}>{dateColumns.length > 1 && <div style={{ marginBottom: 12 }}><label style={{ display: "block", marginBottom: 6, fontSize: 11, fontWeight: 700, color: "#475569", textTransform: "uppercase" }}>Date Column</label><select value={dateFilter.column || ""} onChange={(e) => setDateFilter((current) => ({ ...current, column: e.target.value }))} style={filterInputStyle}><option value="">Select…</option>{dateColumns.map((col) => <option key={col.field} value={col.field}>{col.headerName || col.field}</option>)}</select></div>}<div style={{ marginBottom: 12 }}><label style={{ display: "block", marginBottom: 6, fontSize: 11, fontWeight: 700, color: "#475569", textTransform: "uppercase" }}>Presets</label><div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>{DATE_PRESETS.map((preset) => <button type="button" key={preset.label} onClick={() => { const range = preset.getValue(); setDateFilter((current) => ({ ...current, ...range })); }} style={{ padding: "6px 10px", borderRadius: 20, border: "1px solid #e5e7eb", background: "#fff", color: "#334155", fontSize: 12, cursor: "pointer" }}>{preset.label}</button>)}</div></div><div style={{ display: "flex", gap: 8, marginBottom: 12 }}><div style={{ flex: 1 }}><label style={{ display: "block", marginBottom: 6, fontSize: 11, fontWeight: 700, color: "#475569", textTransform: "uppercase" }}>From</label><input type="date" value={fmtDate(dateFilter.from)} onChange={(e) => setDateFilter((current) => ({ ...current, from: parseDate(e.target.value) }))} style={filterInputStyle} /></div><div style={{ flex: 1 }}><label style={{ display: "block", marginBottom: 6, fontSize: 11, fontWeight: 700, color: "#475569", textTransform: "uppercase" }}>To</label><input type="date" value={fmtDate(dateFilter.to)} onChange={(e) => { const parsed = parseDate(e.target.value); setDateFilter((current) => ({ ...current, to: parsed ? endOfDay(parsed) : null })); }} style={filterInputStyle} /></div></div><button type="button" onClick={() => setDateFilter((current) => ({ ...current, from: null, to: null }))} style={{ ...toolbarButton, width: "100%", background: "#f3f4f6", color: "#374151" }}>Clear</button></FilterPanel>
+      {menuVisible && menuRow && <div style={{ position: "fixed", top: menuPosition.top, left: menuPosition.left, zIndex: 30, minWidth: 160, padding: 8, background: "#fff", borderRadius: 14, border: "1px solid rgba(15,23,42,.08)", boxShadow: "0 20px 45px rgba(15,23,42,.14)" }}>{actions?.view && <button type="button" onClick={() => { actions.view(menuRow); setMenuVisible(false); }} style={menuItemStyle}>View</button>}{actions?.edit && <button type="button" onClick={() => { actions.edit(menuRow); setMenuVisible(false); }} style={menuItemStyle}>Edit</button>}{actions?.delete && <button type="button" onClick={() => { actions.delete(menuRow); setWarn(true); setMenuVisible(false); }} style={menuDangerStyle}>Delete</button>}</div>}
+    </div>
+  );
+}

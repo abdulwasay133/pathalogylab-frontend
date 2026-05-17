@@ -13,7 +13,8 @@ import {
 } from "reactstrap";
 import UserHeader from "components/Headers/UserHeader.js";
 import api from "api/axios";
-import { toast } from "react-toastify";
+import T from "theme/tokens";
+import { toast } from "utils/toast";
 
 /* ─── tiny toggle switch ─────────────────────────────── */
 function Toggle({ checked, onChange, label }) {
@@ -23,7 +24,7 @@ function Toggle({ checked, onChange, label }) {
         onClick={() => onChange(!checked)}
         style={{
           width: 44, height: 24, borderRadius: 999,
-          background: checked ? "#2dce89" : "#cbd3da",
+          background: checked ? T.colors.success : "#cbd5e1",
           position: "relative", transition: "background .2s",
           flexShrink: 0,
         }}
@@ -36,7 +37,7 @@ function Toggle({ checked, onChange, label }) {
           boxShadow: "0 1px 4px rgba(0,0,0,.25)",
         }} />
       </div>
-      <span style={{ fontSize: 13, fontWeight: 600, color: checked ? "#2dce89" : "#8898aa" }}>
+      <span style={{ fontSize: 13, fontWeight: 600, color: checked ? T.colors.success : T.colors.textMuted }}>
         {checked ? "Enabled" : "Disabled"}
       </span>
     </label>
@@ -48,8 +49,8 @@ function ImageUploadBox({ label, hint, preview, onFile, enabled, onToggle }) {
   const ref = useRef();
   return (
     <div style={{
-      border: "2px dashed #e9ecef", borderRadius: 12,
-      padding: 16, background: "#fafbff",
+      border: `2px dashed ${T.colors.border}`, borderRadius: 12,
+      padding: 16, background: "#f8fafc",
     }}>
       <div className="d-flex justify-content-between align-items-center mb-3">
         <span style={{ fontWeight: 700, fontSize: 13, color: "#32325d" }}>{label}</span>
@@ -99,7 +100,7 @@ function SectionHeading({ icon, title }) {
     <div className="d-flex align-items-center mb-3" style={{ gap: 8 }}>
       <span style={{
         width: 32, height: 32, borderRadius: 8,
-        background: "linear-gradient(135deg,#5e72e4,#825ee4)",
+        background: T.gradient.primary,
         display: "flex", alignItems: "center", justifyContent: "center",
         fontSize: 15, flexShrink: 0,
       }}><i className={icon}></i></span>
@@ -247,19 +248,13 @@ export default function Profile() {
 
           {/* ── LAB INFO ── */}
           <Col xl="8" className="mb-4 mb-xl-0">
-            <Card className="shadow border-0" style={{ borderRadius: 16 }}>
-              <CardHeader
-                className="bg-white border-0"
-                style={{ borderRadius: "16px 16px 0 0", padding: "1.25rem 1.5rem" }}
-              >
+            <Card className="lims-page-card shadow border-0">
+              <CardHeader className="lims-page-card-header border-0">
                 <div className="d-flex align-items-center justify-content-between">
                   <div className="d-flex align-items-center" style={{ gap: 10 }}>
-                    <span style={{
-                      width: 38, height: 38, borderRadius: 10,
-                      background: "linear-gradient(135deg,#11cdef,#1171ef)",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 18,
-                    }}><i class="fa-solid fa-hospital text-white"></i></span>
+                    <span className="lims-page-icon">
+                      <i className="fa-solid fa-hospital text-white" />
+                    </span>
                     <div>
                       <h3 className="mb-0">Laboratory Settings</h3>
                       <p className="text-muted mb-0" style={{ fontSize: 12 }}>
@@ -400,7 +395,7 @@ export default function Profile() {
                       className="btn btn-primary"
                       style={{
                         borderRadius: 8, fontWeight: 600,
-                        background: "linear-gradient(135deg,#5e72e4,#825ee4)",
+                        background: T.gradient.primary,
                         border: "none", minWidth: 140,
                         boxShadow: "0 4px 12px rgba(94,114,228,.35)",
                       }}
@@ -419,7 +414,7 @@ export default function Profile() {
           <Col xl="4">
             <Card className="shadow border-0 h-100" style={{ borderRadius: 16 }}>
               <CardHeader
-                className="bg-white border-0"
+                className="  border-0"
                 style={{ borderRadius: "16px 16px 0 0", padding: "1.25rem 1.5rem" }}
               >
                 <div className="d-flex align-items-center" style={{ gap: 10 }}>
@@ -463,7 +458,7 @@ export default function Profile() {
                           fontSize: 16, userSelect: "none",
                         }}
                       >
-                        {showPass[key] ? "🙈" : "👁️"}
+                        <i className={showPass[key] ? "fas fa-eye" : "fas fa-eye-slash"}></i>
                       </span>
                     </div>
                   </FormGroup>
@@ -505,7 +500,7 @@ export default function Profile() {
                   onClick={savePassword}
                   disabled={savingPass}
                 >
-                  {savingPass ? "Updating…" : "🔑 Update Password"}
+                  {savingPass ? "Updating…" : "Update Password"}
                 </button>
               </CardBody>
             </Card>
@@ -517,7 +512,7 @@ export default function Profile() {
           <Col xl="12">
             <Card className="shadow border-0" style={{ borderRadius: 16 }}>
               <CardHeader
-                className="bg-white border-0"
+                className="  border-0"
                 style={{ borderRadius: "16px 16px 0 0", padding: "1.25rem 1.5rem" }}
               >
                 <div className="d-flex align-items-center justify-content-between flex-wrap" style={{ gap: 12 }}>

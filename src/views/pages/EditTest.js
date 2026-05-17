@@ -2,7 +2,7 @@ import api from "api/axios";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "utils/toast";
 import { Card, CardBody, CardHeader, Container, Row } from "reactstrap";
 
 function EditTest() {

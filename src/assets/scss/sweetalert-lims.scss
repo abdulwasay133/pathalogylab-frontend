@@ -1,0 +1,58 @@
+// SweetAlert2 — LIMS theme
+.lims-swal-popup {
+  border-radius: 16px !important;
+  padding: 1.5rem 1.25rem 1.25rem !important;
+  font-family: var(--lims-font, Inter, sans-serif) !important;
+  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.18) !important;
+}
+
+.lims-swal-title {
+  font-size: 1.15rem !important;
+  font-weight: 700 !important;
+  color: var(--lims-text, #1e293b) !important;
+}
+
+.lims-swal-text {
+  font-size: 0.9rem !important;
+  color: var(--lims-text-secondary, #64748b) !important;
+  line-height: 1.55 !important;
+}
+
+.lims-swal-btn {
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+  padding: 0.55rem 1.25rem !important;
+  margin: 0 0.35rem !important;
+  cursor: pointer !important;
+  border: none !important;
+  transition: opacity 0.15s, transform 0.15s !important;
+
+  &:hover {
+    opacity: 0.92;
+    transform: translateY(-1px);
+  }
+}
+
+.lims-swal-btn-confirm {
+  background: linear-gradient(135deg, #3b6cf4, #6366f1) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgba(59, 108, 244, 0.35) !important;
+}
+
+.lims-swal-btn-danger {
+  background: linear-gradient(135deg, #dc2626, #ef4444) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35) !important;
+}
+
+.lims-swal-btn-cancel {
+  background: #f8fafc !important;
+  color: var(--lims-text-secondary, #64748b) !important;
+  border: 1px solid var(--lims-border, #e2e8f0) !important;
+}
+
+.swal2-toast.lims-swal-popup {
+  padding: 0.75rem 1rem !important;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12) !important;
+}

@@ -1,93 +1,278 @@
-import { Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import api from "api/axios";
+import { showError, showSuccess } from "utils/alert";
+import LimsModal, { LimsModalFooter } from "./LimsModal";
 
-export default function WarningDialog({ open, handleClose, handleConfirm }) {
+export default function UserFormModal({
+  open,
+  editUser,
+  roles,
+  onClose,
+  onSaved,
+}) {
+  const [saving, setSaving] = useState(false);
+  const [showPass, setShowPass] = useState(false);
+
+  const isEdit = !!editUser;
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    mode: "onChange",
+    defaultValues: {
+      name: "",
+      email: "",
+      role: "",
+      password: "",
+    },
+  });
+
+  useEffect(() => {
+    if (!open) return;
+
+    reset(
+      editUser
+        ? {
+            name: editUser.name || "",
+            email: editUser.email || "",
+            role: editUser.roles?.[0] || "",
+            password: "",
+          }
+        : {
+            name: "",
+            email: "",
+            role: "",
+            password: "",
+          }
+    );
+  }, [open, editUser, reset]);
+
+  const onSubmit = async (data) => {
+    setSaving(true);
+
+    try {
+      // Remove empty password in edit mode
+      if (isEdit && !data.password) {
+        delete data.password;
+      }
+
+      if (isEdit) {
+        await api.put(`/users/${editUser.id}`, data);
+        showSuccess("User updated successfully.");
+      } else {
+        await api.post("/users", data);
+        showSuccess("User created successfully.");
+      }
+
+      onSaved();
+      onClose();
+    } catch (err) {
+      showError(
+        err?.response?.data?.message || "Failed to save user."
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
-    <Dialog
+    <LimsModal
       open={open}
-      onClose={handleClose}
-      PaperProps={{
-        sx: {
-          borderRadius: "16px",
-          padding: 0,
-          minWidth: "380px",
-          overflow: "hidden",
-        },
-      }}
+      onClose={onClose}
+      title={isEdit ? "Edit User" : "Add New User"}
+      subtitle={
+        isEdit
+          ? `Editing ${editUser?.name}`
+          : "Fill details and assign a role"
+      }
+      icon={
+        isEdit
+          ? "fa-solid fa-user-pen"
+          : "fa-solid fa-user-plus"
+      }
+      variant={isEdit ? "warning" : "success"}
+      size="md"
+      footer={
+        <LimsModalFooter
+          onCancel={onClose}
+          confirmLabel={
+            isEdit ? "Update User" : "Create User"
+          }
+          saving={saving}
+          confirmType="submit"
+          formId="user-form-modal"
+        />
+      }
     >
-      {/* ── Amber accent top bar ── */}
-      <div style={{
-        height: 5,
-        background: "linear-gradient(90deg,#fb6340,#fbb140)",
-      }} />
+      <form
+        id="user-form-modal"
+        onSubmit={handleSubmit(onSubmit)}
+        noValidate
+      >
+        {/* Name */}
+        <div className="lims-form-field">
+          <label className="lims-form-label">
+            Full Name <span className="required">*</span>
+          </label>
 
-      <DialogTitle sx={{ pb: 0, pt: 2.5, px: 3 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          {/* icon badge */}
-          <div style={{
-            width: 46, height: 46, borderRadius: 12, flexShrink: 0,
-            background: "linear-gradient(135deg,#fb6340,#fbb140)",
-            display: "flex", alignItems: "center",
-            justifyContent: "center", fontSize: 22,
-            boxShadow: "0 4px 12px rgba(251,99,64,.3)",
-          }}>
-            ⚠️
-          </div>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 17, color: "#32325d" }}>
-              Warning
-            </div>
-            <div style={{ fontSize: 12, color: "#8898aa", marginTop: 2 }}>
-              Please review before continuing
-            </div>
-          </div>
+          <input
+            className={`lims-form-input ${
+              errors.name ? "is-invalid" : ""
+            }`}
+            placeholder="e.g. Dr. John Doe"
+            {...register("name", {
+              required: "Name is required",
+              minLength: {
+                value: 3,
+                message: "Minimum 3 characters",
+              },
+            })}
+          />
+
+          {errors.name && (
+            <span className="lims-form-error">
+              {errors.name.message}
+            </span>
+          )}
         </div>
-      </DialogTitle>
 
-      <DialogContent sx={{ px: 3, pt: 2, pb: 1 }}>
-        <div style={{
-          background: "#fff8f0", border: "1px solid #ffd4c0",
-          borderRadius: 10, padding: "14px 16px",
-          display: "flex", alignItems: "flex-start", gap: 10,
-        }}>
-          <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>🔔</span>
-          <p style={{ margin: 0, fontSize: 14, color: "#525f7f", lineHeight: 1.6 }}>
-            Are you sure you want to continue?{" "}
-            <strong style={{ color: "#fb6340" }}>This action may affect important data</strong>{" "}
-            and cannot be undone.
-          </p>
+        {/* Email */}
+        <div className="lims-form-field">
+          <label className="lims-form-label">
+            Email <span className="required">*</span>
+          </label>
+
+          <input
+            type="email"
+            className={`lims-form-input ${
+              errors.email ? "is-invalid" : ""
+            }`}
+            placeholder="user@lims.com"
+            {...register("email", {
+              required: "Email is required",
+              pattern: {
+                value: /^\S+@\S+\.\S+$/,
+                message: "Enter a valid email",
+              },
+            })}
+          />
+
+          {errors.email && (
+            <span className="lims-form-error">
+              {errors.email.message}
+            </span>
+          )}
         </div>
-      </DialogContent>
 
-      <DialogActions sx={{ px: 3, pb: 3, pt: 1.5, gap: 1 }}>
-        <button
-          onClick={handleClose}
-          style={{
-            borderRadius: 8, border: "1px solid #e0e6ed",
-            background: "#f8f9fe", color: "#525f7f",
-            fontWeight: 600, fontSize: 14,
-            padding: "9px 24px", cursor: "pointer",
-            flex: 1,
-          }}
-        >
-          Cancel
-        </button>
+        {/* Password */}
+        <div className="lims-form-field">
+          <label className="lims-form-label">
+            Password{" "}
+            {!isEdit && (
+              <span className="required">*</span>
+            )}
 
-        <button
-          onClick={handleConfirm}
-          style={{
-            borderRadius: 8, border: "none",
-            background: "linear-gradient(135deg,#fb6340,#fbb140)",
-            color: "#fff", fontWeight: 600, fontSize: 14,
-            padding: "9px 24px", cursor: "pointer",
-            flex: 1,
-            boxShadow: "0 4px 12px rgba(251,99,64,.35)",
-            display: "flex", alignItems: "center",
-            justifyContent: "center", gap: 6,
-          }}
-        >
-          ✅ Yes, Continue
-        </button>
-      </DialogActions>
-    </Dialog>
+            {isEdit && (
+              <span
+                style={{
+                  fontWeight: 400,
+                  color: "var(--lims-text-muted)",
+                }}
+              >
+                {" "}
+                (leave blank to keep current password)
+              </span>
+            )}
+          </label>
+
+          <div style={{ position: "relative" }}>
+            <input
+              type={showPass ? "text" : "password"}
+              className={`lims-form-input ${
+                errors.password ? "is-invalid" : ""
+              }`}
+              style={{ paddingRight: 40 }}
+              placeholder={
+                isEdit
+                  ? "••••••••"
+                  : "Minimum 8 characters"
+              }
+              {...register("password", {
+                ...(!isEdit && {
+                  required: "Password is required",
+                }),
+                minLength: {
+                  value: 8,
+                  message: "Minimum 8 characters",
+                },
+              })}
+            />
+
+            <button
+              type="button"
+              onClick={() => setShowPass((prev) => !prev)}
+              style={{
+                position: "absolute",
+                right: 10,
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: "var(--lims-text-muted)",
+              }}
+            >
+              <i
+                className={
+                  showPass
+                    ? "fa-solid fa-eye-slash"
+                    : "fa-solid fa-eye"
+                }
+              />
+            </button>
+          </div>
+
+          {errors.password && (
+            <span className="lims-form-error">
+              {errors.password.message}
+            </span>
+          )}
+        </div>
+
+        {/* Role */}
+        <div className="lims-form-field">
+          <label className="lims-form-label">
+            Role <span className="required">*</span>
+          </label>
+
+          <select
+            className={`lims-form-input ${
+              errors.role ? "is-invalid" : ""
+            }`}
+            {...register("role", {
+              required: "Please select a role",
+            })}
+          >
+            <option value="">— Select a role —</option>
+
+            {roles?.map((r) => (
+              <option key={r.id} value={r.name}>
+                {r.name}
+              </option>
+            ))}
+          </select>
+
+          {errors.role && (
+            <span className="lims-form-error">
+              {errors.role.message}
+            </span>
+          )}
+        </div>
+      </form>
+    </LimsModal>
   );
 }

@@ -3,7 +3,7 @@ import { set, useForm } from "react-hook-form";
 import ConfirmModal from "./confirmModal/ConfirmModal";
 import FormModal from "./formModal/FormModal";
 import api from "api/axios";
-import { toast } from "react-toastify";
+import { toast } from "utils/toast";
 import { useNavigate } from "react-router-dom";
 
 
@@ -601,7 +601,7 @@ const update = async () => {
     setShowConfirm(true);
     return;
   }
-    const response = await api.put(`/update-template/${id}`, payload);
+    const response = await api.put(`test/${id}/template`, payload);
     console.log(response);
     if(response.status===200){
       toast.success(response.data.message);
@@ -663,10 +663,10 @@ const confirmSave = async (formData) => {
   };
 
   return (
-    <div style={{ width:"100%",height:"100%",display:"flex",flexDirection:"column",background:"#ffffff",fontFamily:"'Segoe UI',system-ui,sans-serif",overflow:"hidden" }}>
+    <div style={{ width:"100%",height:"100%",display:"flex",flexDirection:"column",background:"#f8fafc",fontFamily:"var(--lims-font, Inter, sans-serif)",overflow:"hidden" }}>
 
       {/* ══ TOOLBAR ══ */}
-      <div style={{ height:54,background:"linear-gradient(90deg,#1e293b,#0f172a)",borderBottom:"1px solid rgba(255,255,255,.07)",display:"flex",alignItems:"center",padding:"0 12px",flexShrink:0,overflowX:"auto",gap:1 }}>
+      <div style={{ height:54,background:"linear-gradient(90deg,#1e40af,#3b6cf4)",borderBottom:"1px solid rgba(255,255,255,.12)",display:"flex",alignItems:"center",padding:"0 12px",flexShrink:0,overflowX:"auto",gap:1 }}>
         {/* brand */}
         <div style={{ display:"flex",alignItems:"center",gap:8,paddingRight:14,marginRight:4,borderRight:"1px solid rgba(255,255,255,.1)",flexShrink:0 }}>
           {/* <div style={{ width:28,height:28,background:"linear-gradient(135deg,#3b82f6,#6366f1)",borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14 }}>⚡</div> */}

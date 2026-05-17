@@ -1,27 +1,32 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "utils/toast";
 import { Col, Row } from "reactstrap";
 import { useAuth } from "context/AuthContext";
+import T from "theme/tokens";
 
-/* ── input style ── */
 const iS = {
-  borderRadius: 10, border: "1px solid #e0e6ed",
-  padding: "12px 14px", fontSize: 14, color: "#32325d",
-  background: "#fff", width: "100%", outline: "none",
+  borderRadius: T.radius.md,
+  border: `1px solid ${T.colors.border}`,
+  padding: "12px 14px",
+  fontSize: T.font.sizeBase,
+  color: T.colors.text,
+  background: T.colors.surface,
+  width: "100%",
+  outline: "none",
   transition: "border .15s, box-shadow .15s",
   boxSizing: "border-box",
 };
 const onFocus = (e) => {
-  e.target.style.border = "1px solid #5e72e4";
-  e.target.style.boxShadow = "0 0 0 3px rgba(94,114,228,.12)";
+  e.target.style.border = `1px solid ${T.colors.primary}`;
+  e.target.style.boxShadow = "0 0 0 3px rgba(59,108,244,.12)";
 };
 const onBlur = (e) => {
-  e.target.style.border = "1px solid #e0e6ed";
+  e.target.style.border = `1px solid ${T.colors.border}`;
   e.target.style.boxShadow = "none";
 };
-const iErr = { border: "1px solid #f5365c" };
+const iErr = { border: `1px solid ${T.colors.danger}` };
 
 /* ══════════════════════════════════════════════════════════ */
 
@@ -59,28 +64,33 @@ const Login = () => {
 
       {/* ── Card ── */}
       <div style={{
-        background: "#fff",
-        borderRadius: 20,
+        background: T.colors.surface,
+        borderRadius: T.radius.xl,
         overflow: "hidden",
-        boxShadow: "0 20px 60px rgba(0,0,0,.12)",
+        boxShadow: T.shadow.lg,
       }}>
 
         {/* gradient header */}
         <div style={{
-          background: "linear-gradient(135deg,#5e72e4 0%,#825ee4 100%)",
+          background: T.gradient.primary,
           padding: "32px 36px 28px",
           textAlign: "center",
         }}>
           {/* logo badge */}
           <div style={{
             width: 56, height: 56, borderRadius: 16,
-            background: "rgba(255,255,255,.2)",
+            background: "rgba(255,255,255,.18)",
             border: "2px solid rgba(255,255,255,.35)",
             display: "flex", alignItems: "center",
-            justifyContent: "center", fontSize: 26,
+            justifyContent: "center", fontSize: 22,
             margin: "0 auto 14px",
             boxShadow: "0 8px 20px rgba(0,0,0,.15)",
-          }}>🔬</div>
+            color: "#fff",
+            fontWeight: 800,
+            letterSpacing: 1.2,
+          }}>
+            <i className="fa-solid fa-vial"></i>
+          </div>
 
           <h2 style={{ color: "#fff", fontWeight: 800, fontSize: 22, margin: "0 0 4px" }}>
             LIMS Portal
@@ -100,17 +110,17 @@ const Login = () => {
 
             {/* ── Email ── */}
             <div style={{ marginBottom: 16 }}>
-              <label style={{ fontSize: 12, fontWeight: 700, color: "#525f7f", marginBottom: 6, display: "block", letterSpacing: 0.3 }}>
+              <label style={{ fontSize: 12, fontWeight: 700, color: T.colors.textSecondary, marginBottom: 6, display: "block", letterSpacing: 0.3 }}>
                 EMAIL ADDRESS
               </label>
               <div style={{ position: "relative" }}>
                 <span style={{
                   position: "absolute", left: 13, top: "50%",
                   transform: "translateY(-50%)",
-                  color: errors.email ? "#f5365c" : "#8898aa",
+                  color: errors.email ? T.colors.danger : T.colors.textMuted,
                   fontSize: 15, pointerEvents: "none",
                 }}>
-                  ✉️
+                  <i className="fa-solid fa-envelope"></i>
                 </span>
                 <input
                   type="email"
@@ -125,7 +135,7 @@ const Login = () => {
                 />
               </div>
               {errors.email && (
-                <small style={{ color: "#f5365c", fontSize: 11, marginTop: 4, display: "block" }}>
+                <small style={{ color: T.colors.danger, fontSize: 11, marginTop: 4, display: "block" }}>
                   ⚠ {errors.email.message}
                 </small>
               )}
@@ -133,17 +143,17 @@ const Login = () => {
 
             {/* ── Password ── */}
             <div style={{ marginBottom: 20 }}>
-              <label style={{ fontSize: 12, fontWeight: 700, color: "#525f7f", marginBottom: 6, display: "block", letterSpacing: 0.3 }}>
+              <label style={{ fontSize: 12, fontWeight: 700, color: T.colors.textSecondary, marginBottom: 6, display: "block", letterSpacing: 0.3 }}>
                 PASSWORD
               </label>
               <div style={{ position: "relative" }}>
                 <span style={{
                   position: "absolute", left: 13, top: "50%",
                   transform: "translateY(-50%)",
-                  color: errors.password ? "#f5365c" : "#8898aa",
+                  color: errors.password ? T.colors.danger : T.colors.textMuted,
                   fontSize: 15, pointerEvents: "none",
                 }}>
-                  🔒
+                  <i className="fa-solid fa-lock"></i>
                 </span>
                 <input
                   type={showPass ? "text" : "password"}
@@ -167,14 +177,14 @@ const Login = () => {
                     transform: "translateY(-50%)",
                     background: "none", border: "none",
                     cursor: "pointer", fontSize: 16, padding: 0,
-                    color: "#8898aa",
+                    color: T.colors.textMuted,
                   }}
                 >
-                  {showPass ? "🙈" : "👁️"}
+                  <i className={showPass ? "fa-solid fa-eye-slash" : "fa-solid fa-eye"} />
                 </button>
               </div>
               {errors.password && (
-                <small style={{ color: "#f5365c", fontSize: 11, marginTop: 4, display: "block" }}>
+                <small style={{ color: T.colors.danger, fontSize: 11, marginTop: 4, display: "block" }}>
                   ⚠ {errors.password.message}
                 </small>
               )}
@@ -185,15 +195,15 @@ const Login = () => {
               <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", margin: 0 }}>
                 <input
                   type="checkbox"
-                  style={{ accentColor: "#5e72e4", width: 15, height: 15 }}
+                  style={{ accentColor: T.colors.primary, width: 15, height: 15 }}
                   {...register("remember")}
                 />
-                <span style={{ fontSize: 13, color: "#525f7f", fontWeight: 500 }}>Remember me</span>
+                <span style={{ fontSize: 13, color: T.colors.textSecondary, fontWeight: 500 }}>Remember me</span>
               </label>
               <a
                 href="#pablo"
                 onClick={e => e.preventDefault()}
-                style={{ fontSize: 13, color: "#5e72e4", fontWeight: 600, textDecoration: "none" }}
+                style={{ fontSize: 13, color: T.colors.primary, fontWeight: 600, textDecoration: "none" }}
               >
                 Forgot password?
               </a>
@@ -208,12 +218,12 @@ const Login = () => {
                 padding: "13px 0", fontSize: 15, fontWeight: 700,
                 cursor: (!isValid || isSubmitting) ? "not-allowed" : "pointer",
                 background: (!isValid || isSubmitting)
-                  ? "#e0e6ed"
-                  : "linear-gradient(135deg,#5e72e4,#825ee4)",
-                color: (!isValid || isSubmitting) ? "#adb5bd" : "#fff",
+                  ? T.colors.border
+                  : T.gradient.primary,
+                color: (!isValid || isSubmitting) ? T.colors.textMuted : "#fff",
                 boxShadow: (!isValid || isSubmitting)
                   ? "none"
-                  : "0 6px 20px rgba(94,114,228,.4)",
+                  : "0 6px 20px rgba(59,108,244,.4)",
                 transition: "all .2s",
                 display: "flex", alignItems: "center",
                 justifyContent: "center", gap: 8,
@@ -234,21 +244,21 @@ const Login = () => {
 
         {/* ── Role hint strip ── */}
         <div style={{
-          background: "#f8f9fe", borderTop: "1px solid #e9ecf3",
+          background: T.colors.bg, borderTop: `1px solid ${T.colors.border}`,
           padding: "12px 32px",
           display: "flex", justifyContent: "center", flexWrap: "wrap", gap: 8,
         }}>
           {[
-            { role: "admin",        icon: "🛡️", label: "Admin"        },
-            { role: "lab",          icon: "🧪", label: "Lab Tech"     },
-            { role: "doctor",       icon: "👨‍⚕️", label: "Doctor"       },
-            { role: "receptionist", icon: "📋", label: "Receptionist" },
+            { role: "admin",        icon: "fa-solid fa-shield-alt", label: "Admin"        },
+            { role: "lab",          icon: "fa-solid fa-user-nurse", label: "Lab Tech"     },
+            { role: "doctor",       icon: "fa-solid fa-user-md", label: "Doctor"       },
+            { role: "receptionist", icon: "fa-solid fa-list", label: "Receptionist" },
           ].map(({ role, icon, label }) => (
             <span key={role} style={{
               display: "inline-flex", alignItems: "center", gap: 4,
-              fontSize: 11, color: "#8898aa", fontWeight: 500,
+              fontSize: 11, color: T.colors.textMuted, fontWeight: 500,
             }}>
-              {icon} {label}
+              <i className={icon}></i>{label}
             </span>
           ))}
         </div>

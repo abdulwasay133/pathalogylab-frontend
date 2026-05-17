@@ -1,7 +1,7 @@
 import api from "api/axios";
 import { useEffect, useRef, useState } from "react";
 import { Modal, ModalBody, ModalHeader } from "reactstrap";
-import { toast } from "react-toastify";
+import { toast } from "utils/toast";
 
 export default function TestReportModal({ test, isOpen, toggle, isEdit }) {
   const [html,    setHtml]    = useState("");
@@ -236,7 +236,7 @@ export default function TestReportModal({ test, isOpen, toggle, isEdit }) {
                 display: "flex", alignItems: "center",
                 justifyContent: "center", fontSize: 20,
                 boxShadow: "0 4px 12px rgba(94,114,228,.3)",
-              }}>💾</div>
+              }}><i className="fa-solid fa-save text-white"></i></div>
               <div>
                 <div style={{ fontWeight: 700, fontSize: 17, color: "#32325d" }}>
                   Save Report
@@ -292,7 +292,7 @@ export default function TestReportModal({ test, isOpen, toggle, isEdit }) {
                   justifyContent: "center", gap: 6,
                 }}
               >
-                ✅ Yes, Save Report
+                 Save Report
               </button>
             </div>
           </div>

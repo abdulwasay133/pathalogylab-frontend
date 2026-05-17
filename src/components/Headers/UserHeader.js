@@ -1,59 +1,57 @@
-/*!
-
-=========================================================
-* Argon Dashboard React - v1.2.4
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/argon-dashboard-react
-* Copyright 2024 Creative Tim (https://www.creative-tim.com)
-* Licensed under MIT (https://github.com/creativetimofficial/argon-dashboard-react/blob/master/LICENSE.md)
-
-* Coded by Creative Tim
-
-=========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-*/
-
-// reactstrap components
-import { Button, Container, Row, Col } from "reactstrap";
+import { Container, Row, Col } from "reactstrap";
 
 const UserHeader = () => {
   return (
-    <>
-      <div
-        className="header pb-8 pt-5 pt-lg-8 d-flex align-items-center"
+    <div
+      className="header pb-8 pt-6 pt-md-7 d-flex align-items-center "
         style={{
-          minHeight: "600px",
-          backgroundImage:
-            "url(" + require("../../assets/img/theme/profile-cover.jpg") + ")",
-          backgroundSize: "cover",
-          backgroundPosition: "center top",
-        }}
-      >
-        {/* Mask */}
-        <span className="mask bg-gradient-default opacity-8" />
-        {/* Header container */}
-        <Container className="d-flex align-items-center" fluid>
-          <Row>
-            <Col lg="7" md="10">
-              <h1 className="display-2 text-white">Hello LIMS User</h1>
-              <p className="text-white mt-0 mb-5">
-                This is your laboratory profile page. You can review lab information, monitor diagnostic services, and manage laboratory settings.
-              </p>
-              <Button
-                color="info"
-                href="#pablo"
-                onClick={(e) => e.preventDefault()}
+    position: "relative",
+    backgroundImage: `
+      linear-gradient(
+        rgba(0, 0, 0, 0.55),
+        rgba(0, 0, 0, 0.55)
+      ),
+      url('/images/one.png')
+    `,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat",
+    overflow: "hidden",
+  }}
+    >
+      <Container className="d-flex align-items-center" fluid >
+        <Row >
+          <Col style={{ width: "100%" }}>
+            <div className="d-flex align-items-center mb-3" style={{ gap: 14 }}>
+              <span
+                style={{
+                  width: 52,
+                  height: 52,
+                  borderRadius: 14,
+                  background: "rgba(255,255,255,.2)",
+                  border: "1px solid rgba(255,255,255,.35)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 22,
+                  color: "#fff",
+                }}
               >
-                Edit profile
-              </Button>
-            </Col>
-          </Row>
-        </Container>
-      </div>
-    </>
+                <i className="fa-solid fa-gear" />
+              </span>
+              <div>
+                <h1 className="mb-1" style={{ fontWeight: 800, fontSize: "1.75rem", color: "#fff" }}>
+                  Laboratory Settings
+                </h1>
+                <p className="mt-0 mb-0" style={{ color: "rgba(255,255,255,.85)", fontSize: 14 }}>
+                  Manage lab profile, branding, and security preferences
+                </p>
+              </div>
+            </div>
+          </Col>
+        </Row>
+      </Container>
+    </div>
   );
 };
 

@@ -5,14 +5,12 @@ import {  Route, Routes, Navigate, HashRouter } from "react-router-dom";
 import "assets/plugins/nucleo/css/nucleo.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "assets/scss/argon-dashboard-react.scss";
-import "react-toastify/dist/ReactToastify.css";
+import "sweetalert2/dist/sweetalert2.min.css";
 // import "bootstrap/dist/css/bootstrap.min.css";
 
 import AdminLayout    from "layouts/Admin.js";
 import AuthLayout     from "layouts/Auth.js";
 import ProtectedRoute from "routes/ProtectedRoute";
-import { ToastContainer } from "react-toastify";
-
 // ✅ Import AuthProvider
 import { AuthProvider } from "context/AuthContext";
 
@@ -24,18 +22,6 @@ root.render(
   //    including ProtectedRoute and Login can call useAuth()
   <AuthProvider>
     <HashRouter basename='/'>
-
-      <ToastContainer
-        position="top-center"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
 
       <Routes>
 

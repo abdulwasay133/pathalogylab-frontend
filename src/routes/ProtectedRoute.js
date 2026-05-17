@@ -22,18 +22,14 @@ export default function ProtectedRoute({ children, role, permission }) {
         alignItems: "center", justifyContent: "center",
         height: "100vh", background: "#f8f9fe", gap: 16,
       }}>
-        <div style={{
-          width: 52, height: 52, borderRadius: 14,
-          background: "linear-gradient(135deg,#5e72e4,#825ee4)",
-          display: "flex", alignItems: "center",
-          justifyContent: "center", fontSize: 24,
-          animation: "pulse 1.4s ease-in-out infinite",
-          boxShadow: "0 8px 20px rgba(94,114,228,.35)",
-        }}>
-          🔬
-        </div>
+
+          <img
+            src="/images/loader.gif"
+            alt="lims-logo"
+            style={{ width: "10%", height: "10%", objectFit: "contain" }}
+          />
         <p style={{ color: "#8898aa", fontWeight: 600, fontSize: 14, margin: 0 }}>
-          Loading…
+          Loading secure dashboard…
         </p>
         <style>{`
           @keyframes pulse {

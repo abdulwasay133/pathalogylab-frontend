@@ -3,7 +3,7 @@ import { Box, Dialog, DialogActions, DialogContent, DialogTitle, Typography } fr
 import api from "api/axios";
 import AppTable from "components/AppTable";
 import React, { useEffect, useState } from "react";
-import { toast } from "react-toastify";
+import { toast } from "utils/toast";
 import { Card, CardBody, CardHeader, Container, Row } from "reactstrap";
 
 function DoctorCommissions() {

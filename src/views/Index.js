@@ -200,11 +200,15 @@ const Index = (props) => {
       <>
         <Header />
         <Container className="mt--7" fluid>
-          <div className="text-center py-5">
-            <div className="spinner-border text-primary" role="status">
+          <div className="text-center py-5" style={{height:'85vh'}}>
+            {/* <div className="spinner-border text-primary" role="status">
               <span className="sr-only">Loading...</span>
-            </div>
-            <p className="mt-3 text-muted">Loading dashboard...</p>
+            </div> */}
+            <p className="mt-3 text-muted mt-5" >
+              <img src="/images/loader.gif" alt="Loading" style={{height:"10%", width:"10%"}} />
+              <br />
+              Loading...
+            </p>
           </div>
         </Container>
       </>

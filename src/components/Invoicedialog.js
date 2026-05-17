@@ -8,7 +8,7 @@ import {
   IconButton,
   Tooltip,
 } from "@mui/material";
-import { toast } from "react-toastify";
+import { toast } from "utils/toast";
 import api from "api/axios";
 
 /* ─────────────────────────────────────────
@@ -38,14 +38,27 @@ function injectPrintStyles() {
 export default function InvoiceDialog({ open, invoiceId, onClose }) {
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [lab, setLab] = useState(null);
   const printRef = useRef(null);
+
+  const labinfo = async () => {
+    try {
+      const res = await api.get("/lab-settings");
+      console.log(res.data);
+      setLab(res.data);
+    } catch (err) {
+      console.error("Failed to fetch lab info", err);
+      return null;
+    }
+  };
 
   useEffect(() => {
     injectPrintStyles();
+    // labinfo();
   }, []);
 
   useEffect(() => {
-    console.log(invoiceId);
+    labinfo();
     if (!open || !invoiceId) return;
     setInvoice(null);
     setLoading(true);
@@ -225,7 +238,7 @@ const handlePrint = () => {
                       fontFamily: "'Georgia', serif",
                     }}
                   >
-                    MedLab
+                  {lab?.lab_name || "MedLab..."}
                   </div>
                   <div
                     style={{

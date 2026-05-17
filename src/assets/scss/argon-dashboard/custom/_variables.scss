@@ -68,9 +68,9 @@ $grays: map-merge((
   "900": $gray-900
 ), $grays);
 
-$blue:    #5e72e4 !default;
-$indigo:  #5603ad !default;
-$purple:  #8965e0 !default;
+$blue:    #3b6cf4 !default;
+$indigo:  #4338ca !default;
+$purple:  #6366f1 !default;
 $pink:    #f3a4b5 !default;
 $red:     #f5365c !default;
 $orange:  #fb6340 !default;
@@ -98,9 +98,9 @@ $colors: map-merge((
   "gray-dark":  $gray-800
 ), $colors);
 
-$default:       #172b4d !default;
-$primary:       #5e72e4 !default;
-$secondary:     #f7fafc !default;
+$default:       #1e293b !default;
+$primary:       #3b6cf4 !default;
+$secondary:     #f8fafc !default;
 $success:       $green !default;
 $info:          $teal !default;
 $warning:       $orange !default;
@@ -232,8 +232,8 @@ $love-color: $red !default;
 // Body
 
 
-$body-bg: #f8f9fe !default;
-$body-color: $gray-700 !default;
+$body-bg: #f1f5f9 !default;
+$body-color: #334155 !default;
 
 
 
@@ -321,10 +321,10 @@ $shape-height-sm:              1.5 !default;
 $border-width:                1px !default;
 $border-color:                $gray-200 !default;
 
-$border-radius:               .375rem !default;
-$border-radius-xl:            .5rem !default;
-$border-radius-lg:            .4375rem !default;
-$border-radius-sm:            .25rem !default;
+$border-radius:               .5rem !default;
+$border-radius-xl:            .75rem !default;
+$border-radius-lg:            .625rem !default;
+$border-radius-sm:            .375rem !default;
 
 $box-shadow-sm:               0 0 .5rem rgba($gray-600, .075) !default;
 $box-shadow:                  0 0 2rem 0 rgba($gray-600, .15) !default;
@@ -347,7 +347,7 @@ $transition-collapse:         height .35s ease !default;
 
 // Fonts
 
-$font-family-sans-serif: Open Sans, sans-serif !default;
+$font-family-sans-serif: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !default;
 $font-family-base: $font-family-sans-serif !default;
 
 $font-size-base:              1rem !default; // Assumes the browser default, typically `16px`

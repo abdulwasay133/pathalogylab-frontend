@@ -1,0 +1,207 @@
+.lims-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: limsModalFadeIn 0.18s ease;
+}
+
+.lims-modal {
+  background: var(--lims-surface, #fff);
+  border-radius: 16px;
+  width: 100%;
+  max-height: min(92vh, 900px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.2);
+  border: 1px solid var(--lims-border, #e2e8f0);
+  animation: limsModalSlideUp 0.22s ease;
+}
+
+.lims-modal--sm { max-width: 400px; }
+.lims-modal--md { max-width: 520px; }
+.lims-modal--lg { max-width: 680px; }
+.lims-modal--xl { max-width: 860px; }
+
+.lims-modal-accent {
+  height: 4px;
+  flex-shrink: 0;
+}
+
+.lims-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 1.15rem 1.35rem 0.85rem;
+  border-bottom: 1px solid var(--lims-border, #e2e8f0);
+}
+
+.lims-modal-header-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.lims-modal-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(59, 108, 244, 0.25);
+}
+
+.lims-modal-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--lims-text, #1e293b);
+  letter-spacing: -0.02em;
+}
+
+.lims-modal-subtitle {
+  margin: 2px 0 0;
+  font-size: 0.8rem;
+  color: var(--lims-text-muted, #94a3b8);
+}
+
+.lims-modal-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--lims-border, #e2e8f0);
+  background: #f8fafc;
+  color: var(--lims-text-secondary, #64748b);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.lims-modal-close:hover {
+  background: #f1f5f9;
+  color: var(--lims-text, #1e293b);
+}
+
+.lims-modal-body {
+  padding: 1.25rem 1.35rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.lims-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 1rem 1.35rem 1.25rem;
+  border-top: 1px solid var(--lims-border, #e2e8f0);
+  background: #fafbfc;
+}
+
+.lims-modal-btn {
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  padding: 0.55rem 1.15rem;
+  cursor: pointer;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.lims-modal-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.lims-modal-btn--ghost {
+  background: #fff;
+  color: var(--lims-text-secondary, #64748b);
+  border: 1px solid var(--lims-border, #e2e8f0);
+}
+
+.lims-modal-btn--primary {
+  background: linear-gradient(135deg, #3b6cf4, #6366f1);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(59, 108, 244, 0.35);
+}
+
+.lims-modal-btn--danger {
+  background: linear-gradient(135deg, #dc2626, #ef4444);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+}
+
+.lims-form-field {
+  margin-bottom: 1rem;
+}
+
+.lims-form-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--lims-text-secondary, #64748b);
+  margin-bottom: 6px;
+}
+
+.lims-form-label .required {
+  color: #ef4444;
+}
+
+.lims-form-input {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--lims-border, #e2e8f0);
+  padding: 0.6rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--lims-text, #1e293b);
+  background: #f8fafc;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.lims-form-input:focus {
+  border-color: var(--lims-primary, #3b6cf4);
+  box-shadow: 0 0 0 3px rgba(59, 108, 244, 0.12);
+  background: #fff;
+}
+
+.lims-form-input.is-invalid {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.lims-form-error {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: #ef4444;
+}
+
+@keyframes limsModalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes limsModalSlideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}

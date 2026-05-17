@@ -19,7 +19,7 @@ import api from "api/axios";
 import AppTable from "components/AppTable";
 import InvoiceDialog from "components/Invoicedialog";
 import React, { useEffect, useState } from "react";
-import { toast } from "react-toastify";
+import { toast } from "utils/toast";
 import { Card, CardBody, CardHeader, Col, Container, Row } from "reactstrap";
 import {
   IconButton,
@@ -31,16 +31,13 @@ import {
 ───────────────────────────────────────── */
 function SummaryCard({ label, value, color, icon }) {
   return (
-    <Card
-      className="shadow-sm border-0"
-      style={{ borderRadius: 14, overflow: "hidden" }}
-    >
+    <Card className="lims-page-card shadow border-0 h-100">
       <CardBody className="p-3">
         <div className="d-flex align-items-center justify-content-between">
           <div>
             <p
               className="text-uppercase font-weight-bold mb-1"
-              style={{ fontSize: 11, color: "#8898aa", letterSpacing: 1 }}
+              style={{ fontSize: 11, color: "var(--lims-text-muted)", letterSpacing: "0.06em" }}
             >
               {label}
             </p>
@@ -52,7 +49,7 @@ function SummaryCard({ label, value, color, icon }) {
             style={{
               width: 46,
               height: 46,
-              borderRadius: "50%",
+              borderRadius: 12,
               background: `${color}18`,
               display: "flex",
               alignItems: "center",
@@ -381,17 +378,18 @@ setSummary({
         {/* ── Commission Table ── */}
         <Row>
           <div className="col">
-            <Card className="shadow border-0" style={{ borderRadius: 14 }}>
-              <CardHeader
-                className="bg-transparent d-flex align-items-center justify-content-between flex-wrap gap-2"
-                style={{
-                  borderBottom: "1px solid #f0f0f0",
-                  padding: "1rem 1.5rem",
-                }}
-              >
-                <h3 className="mb-0" style={{ fontWeight: 700 }}>
-                  Pay Commissions
-                </h3>
+            <Card className="lims-page-card shadow border-0">
+              <CardHeader className="lims-page-card-header border-0">
+                <div className="lims-page-toolbar">
+                <div className="d-flex align-items-center" style={{ gap: 12 }}>
+                  <span className="lims-page-icon" style={{ background: "linear-gradient(135deg, #7c3aed, #8b5cf6)" }}>
+                    <i className="fa-solid fa-hand-holding-dollar text-white" />
+                  </span>
+                  <div>
+                    <h3 className="mb-0 lims-page-title">Pay Commissions</h3>
+                    <p className="mb-0 lims-page-subtitle">Track and settle doctor commission payments</p>
+                  </div>
+                </div>
 
                 <div className="d-flex align-items-center gap-3 flex-wrap">
                   {/* Doctor filter */}
@@ -424,7 +422,7 @@ setSummary({
                       borderRadius: 8,
                       fontWeight: 600,
                       padding: "8px 16px",
-                      background: "linear-gradient(135deg,#5e72e4,#825ee4)",
+                      background: "linear-gradient(135deg,#3b6cf4,#6366f1)",
                       border: "none",
                       boxShadow: "0 4px 12px rgba(94,114,228,.35)",
                     }}
@@ -433,6 +431,7 @@ setSummary({
                     <i className="fa-solid fa-calculator mx-2" />
                     Calculate Commissions
                   </button>
+                </div>
                 </div>
               </CardHeader>
 

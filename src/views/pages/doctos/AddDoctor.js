@@ -2,7 +2,7 @@ import api from "api/axios";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "utils/toast";
 import { Card, CardBody, CardHeader, Container, Row } from "reactstrap";
 
 /* ── reusable field wrapper ── */
@@ -192,15 +192,22 @@ function AddDoctor() {
                       />
                     </Field>
 
-                    <Field label="Phone Number" required error={errors.phone?.message}>
-                      <input
-                        type="text"
-                        placeholder="0300-0000000"
-                        style={errors.phone ? { ...inputStyle, ...inputError } : inputStyle}
-                        onFocus={inputFocus} onBlur={inputBlur}
-                        {...register("phone", { required: "Phone number is required" })}
-                      />
-                    </Field>
+<Field label="Phone Number" required error={errors.phone?.message}>
+  <input
+    type="text"
+    placeholder="0300-0000000"
+    style={errors.phone ? { ...inputStyle, ...inputError } : inputStyle}
+    onFocus={inputFocus}
+    onBlur={inputBlur}
+    {...register("phone", {
+      required: "Phone number is required",
+      pattern: {
+        value: /^03\d{9}$/,
+        message: "Enter valid phone number (03XXXXXXXXX)",
+      },
+    })}
+  />
+</Field>
 
                     <Field label="Qualification" required error={errors.qualification?.message}>
                       <input
