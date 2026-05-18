@@ -1,32 +1,32 @@
 /**
- * LIMS design tokens — single source of truth for JS inline styles.
+ * LIMS design tokens — medical green palette.
  * SCSS mirrors these via CSS custom properties in lims-professional.scss.
  */
 const tokens = {
   colors: {
-    primary: "#3b6cf4",
-    primaryDark: "#2f5bd4",
-    primaryLight: "#eef3ff",
-    accent: "#0ea5e9",
+    primary: "#0d9488",
+    primaryDark: "#0f766e",
+    primaryLight: "#ecfdf5",
+    accent: "#14b8a6",
 
     success: "#10b981",
     warning: "#f59e0b",
     danger: "#ef4444",
     info: "#0ea5e9",
 
-    text: "#1e293b",
-    textSecondary: "#64748b",
-    textMuted: "#94a3b8",
+    text: "#134e4a",
+    textSecondary: "#5f7a76",
+    textMuted: "#94a8a4",
 
-    border: "#e2e8f0",
-    borderLight: "#f1f5f9",
+    border: "#d1e7e4",
+    borderLight: "#ecf5f3",
 
-    bg: "#f1f5f9",
+    bg: "#f4faf8",
     surface: "#ffffff",
-    surfaceHover: "#f8fafc",
+    surfaceHover: "#f0fdf9",
 
-    sidebarActive: "#eef3ff",
-    sidebarActiveBorder: "#3b6cf4",
+    sidebarActive: "#ecfdf5",
+    sidebarActiveBorder: "#0d9488",
   },
 
   radius: {
@@ -38,10 +38,10 @@ const tokens = {
   },
 
   shadow: {
-    sm: "0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04)",
-    md: "0 4px 16px rgba(15,23,42,.08)",
-    lg: "0 12px 40px rgba(15,23,42,.12)",
-    card: "0 2px 12px rgba(15,23,42,.06)",
+    sm: "0 1px 3px rgba(15, 60, 50, .06), 0 1px 2px rgba(15, 60, 50, .04)",
+    md: "0 4px 16px rgba(15, 60, 50, .08)",
+    lg: "0 12px 40px rgba(15, 60, 50, .12)",
+    card: "0 2px 12px rgba(15, 60, 50, .06)",
   },
 
   font: {
@@ -54,9 +54,9 @@ const tokens = {
   },
 
   gradient: {
-    primary: "linear-gradient(135deg, #3b6cf4 0%, #6366f1 100%)",
-    header: "linear-gradient(135deg, #1e40af 0%, #3b6cf4 50%, #6366f1 100%)",
-    auth: "linear-gradient(145deg, #0f172a 0%, #1e3a8a 45%, #3b6cf4 100%)",
+    primary: "linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)",
+    header: "linear-gradient(135deg, #064e3b 0%, #0d9488 50%, #14b8a6 100%)",
+    auth: "linear-gradient(145deg, #042f2e 0%, #0f766e 45%, #14b8a6 100%)",
   },
 };
 

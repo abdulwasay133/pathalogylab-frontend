@@ -3,8 +3,8 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL:
-    process.env.REACT_APP_API_BASE_URL ||
-    "http://localhost:8000/api", // Default to localhost if env var not set
+    process.env.REACT_APP_API_URL ||
+    "http://192.168.1.81:8000/api", // Default to localhost if env var not set
   headers: {
     "Content-Type": "application/json",
     "Accept":       "application/json",
